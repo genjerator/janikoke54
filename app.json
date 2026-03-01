@@ -12,7 +12,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.janikoke54"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,10 +21,27 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAoYqKUc0h6YpGZsXgwRvSH8h4lD-OdCPI"
+        }
+      },
+      "package": "com.anonymous.janikoke54"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a12ce848-7666-40b4-8a46-154c41219de9"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a12ce848-7666-40b4-8a46-154c41219de9"
     }
   }
 }
