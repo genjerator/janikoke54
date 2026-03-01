@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "janikoke54",
+    "name": "Janikoke",
     "slug": "janikoke54",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -27,7 +27,7 @@
           "apiKey": "AIzaSyAoYqKUc0h6YpGZsXgwRvSH8h4lD-OdCPI"
         }
       },
-      "package": "com.anonymous.janikoke54"
+      "package": "com.anonymous.janikoke"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,6 +42,14 @@
     },
     "updates": {
       "url": "https://u.expo.dev/a12ce848-7666-40b4-8a46-154c41219de9"
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ]
   }
 }

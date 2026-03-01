@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button, SafeAreaView, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from './app/Login';
 import ChallengesScreen from './screens/ChallengesScreen';
 import TopScoreScreen from './screens/TopScoreScreen';
@@ -12,15 +13,40 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [activeChallenge, setActiveChallenge] = useState(null);
 
-  const handleLoginSuccess = (data) => {
+  // Load user session on startup
+  useEffect(() => {
+    const loadSession = async () => {
+      try {
+        const savedUser = await AsyncStorage.getItem('user_session');
+        if (savedUser) {
+          setLoggedUser(JSON.parse(savedUser));
+        }
+      } catch (e) {
+        console.error('Failed to load session:', e);
+      }
+    };
+    loadSession();
+  }, []);
+
+  const handleLoginSuccess = async (data) => {
     setLoggedUser(data);
     setShowLogin(false);
+    try {
+      await AsyncStorage.setItem('user_session', JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save session:', e);
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLoggedUser(null);
     setCurrentScreen('home');
     setActiveChallenge(null);
+    try {
+      await AsyncStorage.removeItem('user_session');
+    } catch (e) {
+      console.error('Failed to remove session:', e);
+    }
   };
 
 
@@ -30,15 +56,26 @@ export default function App() {
       return <Login onLoginSuccess={handleLoginSuccess} onBack={() => setShowLogin(false)} />;
     }
     if (activeChallenge) {
-      return <MapScreen challenge={activeChallenge} onBack={() => setActiveChallenge(null)} />;
+      return <MapScreen challenge={activeChallenge} user={loggedUser} onBack={() => setActiveChallenge(null)} />;
     }
     if (currentScreen === 'challenges') return <ChallengesScreen user={loggedUser} onOpenMap={setActiveChallenge} />;
     if (currentScreen === 'topscore') return <TopScoreScreen user={loggedUser} />;
     return (
       <View style={styles.home}>
         <Text style={styles.welcome}>Welcome{loggedUser ? `, ${loggedUser.name || loggedUser.email}` : ''}!</Text>
-        <Text style={styles.subtitle}>Open up App.js to start working on your app!</Text>
-        <Button title="Press m11Me!" onPress={() => alert('Button Pressed!')} />
+        <Text style={styles.readyText}>Are you ready for a challenge?</Text>
+        <Text style={styles.homeDescription}>
+          Explore Novi Sad, complete geographical challenges, and collect points to climb the scoreboard.
+        </Text>
+        {!loggedUser ? (
+          <TouchableOpacity style={styles.getStartedBtn} onPress={() => setShowLogin(true)}>
+            <Text style={styles.getStartedBtnText}>Get Started</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.getStartedBtn} onPress={() => setCurrentScreen('challenges')}>
+            <Text style={styles.getStartedBtnText}>View Challenges</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -63,7 +100,10 @@ export default function App() {
         <View style={styles.menu}>
           <TouchableOpacity
             style={[styles.menuItem, currentScreen === 'challenges' && styles.menuItemActive]}
-            onPress={() => setCurrentScreen('challenges')}
+            onPress={() => {
+              setCurrentScreen('challenges');
+              setActiveChallenge(null);
+            }}
           >
             <Text style={[styles.menuText, currentScreen === 'challenges' && styles.menuTextActive]}>
               🏆 Challenges
@@ -71,7 +111,10 @@ export default function App() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.menuItem, currentScreen === 'topscore' && styles.menuItemActive]}
-            onPress={() => setCurrentScreen('topscore')}
+            onPress={() => {
+              setCurrentScreen('topscore');
+              setActiveChallenge(null);
+            }}
           >
             <Text style={[styles.menuText, currentScreen === 'topscore' && styles.menuTextActive]}>
               ⭐ Top Score
@@ -151,12 +194,44 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    paddingHorizontal: 20,
+    gap: 16,
   },
   welcome: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  readyText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: '#4A90E2',
+    textAlign: 'center',
+  },
+  homeDescription: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: '80%',
+  },
+  getStartedBtn: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    marginTop: 20,
+    shadowColor: '#4A90E2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  getStartedBtnText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   subtitle: {
     fontSize: 14,

@@ -1,8 +1,188 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import MapView, { Marker, Polygon } from 'react-native-maps';
+import * as Location from 'expo-location';
+import { getDistanceInMeters, getPolygonCenter, isPointInPolygon } from '../utils/geo';
+import { postInsidePolygon, fetchChallengesData } from '../axios/ApiCalls';
 
-const MapScreen = ({ challenge, onBack }) => {
+const MapScreen = ({ challenge, user, onBack }) => {
+    const [locationPermission, setLocationPermission] = useState(null);
+    const [userLocation, setUserLocation] = useState(null);
+    const [closestArea, setClosestArea] = useState(null);
+    const [collectedArea, setCollectedArea] = useState(null); // The area we just entered
+    const [currentChallenge, setCurrentChallenge] = useState(challenge);
+
+    // Animation refs for the closest area pill
+    const pillOpacity = useRef(new Animated.Value(0)).current;
+    const fadeTimeout = useRef(null);
+
+    const handleMapMove = () => {
+        if (fadeTimeout.current) clearTimeout(fadeTimeout.current);
+        Animated.timing(pillOpacity, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handleMapMoveComplete = () => {
+        if (fadeTimeout.current) clearTimeout(fadeTimeout.current);
+        fadeTimeout.current = setTimeout(() => {
+            Animated.timing(pillOpacity, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }).start();
+        }, 1500); 
+    };
+
+    const refreshChallengeData = async () => {
+        if (!user) return;
+        try {
+            const response = await fetchChallengesData(user);
+            const allChallenges = response.data.data || response.data;
+            const updated = allChallenges.find(c => c.id === currentChallenge.id);
+            if (updated) {
+                setCurrentChallenge(updated);
+            }
+        } catch (err) {
+            console.error("Error refreshing challenge data:", err);
+        }
+    };
+
+    useEffect(() => {
+        let locationSubscription;
+
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status === 'granted') {
+                setLocationPermission(true);
+                // Start tracking location
+                locationSubscription = await Location.watchPositionAsync(
+                    {
+                        accuracy: Location.Accuracy.High,
+                        distanceInterval: 10, // Update every 10 meters
+                    },
+                    (location) => {
+                        setUserLocation(location.coords);
+                    }
+                );
+            } else {
+                setLocationPermission(false);
+            }
+        })();
+
+        return () => {
+            if (locationSubscription) {
+                locationSubscription.remove();
+            }
+        };
+    }, []);
+
+    // Get all valid polygons from the challenge areas
+    const allPolygons = React.useMemo(() => {
+        console.log(currentChallenge);
+        if (!currentChallenge?.areas) return [];
+        return currentChallenge.areas.flatMap(area => {
+            if (!area.polygons) return [];
+            return {
+                ...area,
+                polyCoords: area.polygons.map(p => ({
+                    latitude: Number(p.latitude),
+                    longitude: Number(p.longitude)
+                }))
+            };
+        });
+    }, [currentChallenge]);
+
+    // Calculate initial region based on all polygons, or fallback to Novi Sad
+    const mapRegion = React.useMemo(() => {
+        if (allPolygons.length > 0) {
+            let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+            let hasValidCoords = false;
+
+            allPolygons.forEach(area => {
+                area.polyCoords.forEach(c => {
+                    hasValidCoords = true;
+                    minLat = Math.min(minLat, c.latitude);
+                    maxLat = Math.max(maxLat, c.latitude);
+                    minLng = Math.min(minLng, c.longitude);
+                    maxLng = Math.max(maxLng, c.longitude);
+                });
+            });
+
+            if (hasValidCoords) {
+                return {
+                    latitude: (minLat + maxLat) / 2,
+                    longitude: (minLng + maxLng) / 2,
+                    latitudeDelta: Math.max(0.01, (maxLat - minLat) * 1.5),
+                    longitudeDelta: Math.max(0.01, (maxLng - minLng) * 1.5),
+                };
+            }
+        }
+        return {
+            latitude: 45.267136,
+            longitude: 19.833549,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
+        };
+    }, [allPolygons]);
+
+    // Calculate closest area when user location or polygons change
+    useEffect(() => {
+        if (!userLocation || allPolygons.length === 0) return;
+
+        let minDistance = Infinity;
+        let closest = null;
+        let insideArea = null;
+
+        allPolygons.forEach(area => {
+            // Check if user is inside this polygon and it is NOT collected yet (status === 0)
+            if (area.status === 0 && isPointInPolygon(userLocation, area.polyCoords)) {
+                console.log("User is inside area:", area);
+                insideArea = area;
+            }
+
+            const center = getPolygonCenter(area.polyCoords);
+            if (center) {
+                const dist = getDistanceInMeters(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    center.latitude,
+                    center.longitude
+                );
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closest = { ...area, distance: dist };
+                }
+            }
+        });
+
+        if (insideArea && !collectedArea) {
+            setCollectedArea(insideArea);
+            
+            // Call the API endpoint
+            if (user) {
+                postInsidePolygon({
+                    area_id: insideArea.id,
+                    challenge_id: currentChallenge.id
+                }, user).then(() => {
+                    // Refresh data from server to sync state
+                    console.log("Collection posted successfully");
+                    refreshChallengeData();
+                }).catch(err => console.error("Error posting collection:", err));
+            }
+        }
+
+        setClosestArea(closest);
+    }, [userLocation, allPolygons]);
+
+    // Format distance for display
+    const formatDistance = (dist) => {
+        if (dist === null || dist === undefined) return '';
+        if (dist < 1000) return `${Math.round(dist)} m`;
+        return `${(dist / 1000).toFixed(1)} km`;
+    };
     return (
         <View style={styles.container}>
             {/* Header / Breadcrumb */}
@@ -15,13 +195,54 @@ const MapScreen = ({ challenge, onBack }) => {
             {/* Google Map */}
             <MapView
                 style={styles.map}
-                initialRegion={{
-                    latitude: 45.267136,
-                    longitude: 19.833549,
-                    latitudeDelta: 0.1, // Zoom level (around 10km)
-                    longitudeDelta: 0.1,
-                }}
-            />
+                initialRegion={mapRegion}
+                showsUserLocation={locationPermission}
+                showsMyLocationButton={locationPermission}
+                onRegionChange={handleMapMove}
+                onRegionChangeComplete={handleMapMoveComplete}
+            >
+                {allPolygons.map((area, index) => {
+                    const isCompleted = area.status === 1;
+                    return (
+                        <Polygon
+                            key={`${area.id}-${index}`}
+                            coordinates={area.polyCoords}
+                            fillColor={isCompleted ? 'rgba(244, 67, 54, 0.4)':'rgba(76, 175, 80, 0.4)' }
+                            strokeColor={isCompleted ? '#F44336':'#4CAF50' }
+                            strokeWidth={2}
+                        />
+                    );
+                })}
+            </MapView>
+
+            {/* Closest Area Info Pill */}
+            {closestArea && (
+                <Animated.View style={[styles.closestPill, { opacity: pillOpacity }]}>
+                    <Text style={styles.closestLabel}>Closest Area:</Text>
+                    <Text style={styles.closestName} numberOfLines={1}>{closestArea.name}</Text>
+                    <View style={styles.distanceBadge}>
+                        <Text style={styles.distanceText}>📍 {formatDistance(closestArea.distance)}</Text>
+                    </View>
+                </Animated.View>
+            )}
+
+            {/* Congratulations Popup Overlay */}
+            {collectedArea && (
+                <View style={styles.popupOverlay}>
+                    <View style={styles.popupBox}>
+                        <Text style={styles.popupEmoji}>🎉</Text>
+                        <Text style={styles.popupTitle}>Congratulations!</Text>
+                        <Text style={styles.popupText}>You have collected a point.</Text>
+                        <Text style={styles.popupSubtext}>({collectedArea.name})</Text>
+                        <TouchableOpacity 
+                            style={styles.closeButton} 
+                            onPress={() => setCollectedArea(null)}
+                        >
+                            <Text style={styles.closeButtonText}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
         </View>
     );
 };
@@ -59,6 +280,100 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
+    closestPill: {
+        position: 'absolute',
+        bottom: 30,
+        alignSelf: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.70)',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 6,
+        alignItems: 'center',
+        maxWidth: '85%',
+    },
+    closestLabel: {
+        fontSize: 12,
+        color: '#666',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 2,
+    },
+    closestName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 6,
+        textAlign: 'center',
+    },
+    distanceBadge: {
+        backgroundColor: '#e8efff',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    distanceText: {
+        color: '#4A90E2',
+        fontSize: 13,
+        fontWeight: 'bold',
+    },
+    popupOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+    },
+    popupBox: {
+        backgroundColor: '#fff',
+        padding: 24,
+        borderRadius: 16,
+        alignItems: 'center',
+        width: '80%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 15,
+        elevation: 10,
+    },
+    popupEmoji: {
+        fontSize: 50,
+        marginBottom: 10,
+    },
+    popupTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#4A90E2',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    popupText: {
+        fontSize: 16,
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    popupSubtext: {
+        fontSize: 14,
+        color: '#888',
+        textAlign: 'center',
+    },
+    closeButton: {
+        marginTop: 20,
+        backgroundColor: '#4A90E2',
+        paddingVertical: 10,
+        paddingHorizontal: 30,
+        borderRadius: 20,
+    },
+    closeButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    }
 });
 
 export default MapScreen;
