@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Vibration } from 'react-native';
 import MapView, { Marker, Polygon } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getDistanceInMeters, getPolygonCenter, isPointInPolygon } from '../utils/geo';
@@ -160,6 +160,7 @@ const MapScreen = ({ challenge, user, onBack }) => {
 
         if (insideArea && !collectedArea) {
             setCollectedArea(insideArea);
+            Vibration.vibrate([0, 500, 200, 500]); // Vibrate pattern: wait 0ms, vibrate 500ms, wait 200ms, vibrate 500ms
             
             // Call the API endpoint
             if (user) {

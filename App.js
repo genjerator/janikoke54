@@ -84,7 +84,7 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>MyApp</Text>
+        <Text style={styles.topBarTitle}>Jani Koke</Text>
         {loggedUser ? (
           <View style={styles.topBarRight}>
             <Text style={styles.userText}>👤 {loggedUser.name || loggedUser.email || 'User'}</Text>
