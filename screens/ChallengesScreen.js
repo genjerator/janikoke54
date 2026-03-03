@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import * as Sentry from '@sentry/react-native';
+
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { API_URL } from '../Constants';
 
@@ -19,6 +21,7 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
             });
             const data = await response.json();
             console.log(data);
+            Sentry.logger.info("fetchChallenges",data);
             setChallenges(data.data || data);
         } catch (e) {
             setError('Could not load challenges');

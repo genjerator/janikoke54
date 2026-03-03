@@ -4,6 +4,7 @@ import MapView, { Marker, Polygon } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getDistanceInMeters, getPolygonCenter, isPointInPolygon } from '../utils/geo';
 import { postInsidePolygon, fetchChallengesData } from '../axios/ApiCalls';
+import * as Sentry from '@sentry/react-native';
 
 const MapScreen = ({ challenge, user, onBack }) => {
     const [locationPermission, setLocationPermission] = useState(null);
@@ -82,6 +83,7 @@ const MapScreen = ({ challenge, user, onBack }) => {
     // Get all valid polygons from the challenge areas
     const allPolygons = React.useMemo(() => {
         console.log(currentChallenge);
+        Sentry.logger.info("currentChallenge", currentChallenge);
         if (!currentChallenge?.areas) return [];
         return currentChallenge.areas.flatMap(area => {
             if (!area.polygons) return [];
@@ -97,6 +99,9 @@ const MapScreen = ({ challenge, user, onBack }) => {
 
     // Calculate initial region based on all polygons, or fallback to Novi Sad
     const mapRegion = React.useMemo(() => {
+        Sentry.captureException(new Error('First error'));
+        console.log("allPolygons", allPolygons);
+        Sentry.logger.info("allPolygons", allPolygons);
         if (allPolygons.length > 0) {
             let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
             let hasValidCoords = false;
@@ -140,6 +145,7 @@ const MapScreen = ({ challenge, user, onBack }) => {
             // Check if user is inside this polygon and it is NOT collected yet (status === 0)
             if (area.status === 0 && isPointInPolygon(userLocation, area.polyCoords)) {
                 console.log("User is inside area:", area);
+                Sentry.logger.info("User is inside area:", area);
                 insideArea = area;
             }
 
@@ -170,8 +176,12 @@ const MapScreen = ({ challenge, user, onBack }) => {
                 }, user).then(() => {
                     // Refresh data from server to sync state
                     console.log("Collection posted successfully");
+                    Sentry.logger.info("Collection posted successfully");
                     refreshChallengeData();
-                }).catch(err => console.error("Error posting collection:", err));
+                }).catch(err => {
+                    console.error("Error posting collection:", err); 
+                    Sentry.logger.error("Error posting collection:", err)
+                });
             }
         }
 

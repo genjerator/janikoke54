@@ -6,8 +6,28 @@ import Login from './app/Login';
 import ChallengesScreen from './screens/ChallengesScreen';
 import TopScoreScreen from './screens/TopScoreScreen';
 import MapScreen from './screens/MapScreen';
+import * as Sentry from '@sentry/react-native';
 
-export default function App() {
+Sentry.init({
+  dsn: 'https://226ef1ba51fb30cfcda2240647b405ad@o4510981976293376.ingest.de.sentry.io/4510981983240272',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
+
+export default Sentry.wrap(function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [loggedUser, setLoggedUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -65,7 +85,7 @@ export default function App() {
         <Text style={styles.welcome}>Welcome{loggedUser ? `, ${loggedUser.name || loggedUser.email}` : ''}!</Text>
         <Text style={styles.readyText}>Are you ready for a challenge?</Text>
         <Text style={styles.homeDescription}>
-          Explore Novi Sad, complete geographical challenges, and collect points to climb the scoreboard.
+          Explore your surroundings, complete geographical challenges, and collect points to climb the scoreboard.
         </Text>
         {!loggedUser ? (
           <TouchableOpacity style={styles.getStartedBtn} onPress={() => setShowLogin(true)}>
@@ -131,7 +151,7 @@ export default function App() {
       <StatusBar style="auto" />
     </SafeAreaView>
   );
-}
+});
 
 const styles = StyleSheet.create({
   safeArea: {
