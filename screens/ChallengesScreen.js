@@ -1,14 +1,71 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import * as Sentry from '@sentry/react-native';
+import * as Location from 'expo-location';
 
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, Animated } from 'react-native';
 import { API_URL } from '../Constants';
+import { getDistanceInMeters } from '../utils/geo';
+
+const PulsingIcon = ({ children }) => {
+    const scale = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(scale, {
+                    toValue: 1.05,
+                    duration: 700,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scale, {
+                    toValue: 1,
+                    duration: 700,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
+
+    return (
+        <Animated.View style={{ transform: [{ scale }] }}>
+            {children}
+        </Animated.View>
+    );
+};
 
 const ChallengesScreen = ({ user, onOpenMap }) => {
     const [challenges, setChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
+    const [userLocation, setUserLocation] = useState(null);
+
+    // Get current location when the screen loads
+    useEffect(() => {
+        (async () => {
+            try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    console.log('Location permission denied');
+                    Sentry.logger.info('Location permission denied');
+                    return;
+                }
+
+                const location = await Location.getCurrentPositionAsync({
+                    accuracy: Location.Accuracy.High,
+                });
+                setUserLocation(location.coords);
+                console.log('Current location:', location.coords);
+                Sentry.logger.info('Current location', {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                });
+            } catch (e) {
+                console.error('Error getting location:', e);
+                Sentry.logger.error('Error getting location', e);
+            }
+        })();
+    }, []);
 
     const fetchChallenges = async ({ silent = false } = {}) => {
         silent ? setRefreshing(true) : setLoading(true);
@@ -20,7 +77,6 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                 },
             });
             const data = await response.json();
-            console.log(data);
             Sentry.logger.info("fetchChallenges",data);
             setChallenges(data.data || data);
         } catch (e) {
@@ -33,6 +89,34 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
 
     useEffect(() => { fetchChallenges(); }, []);
 
+    // Sort challenges by distance from user location using center_point
+    const sortedChallenges = useMemo(() => {
+        if (!userLocation || !challenges.length) return challenges;
+        
+        return [...challenges]
+            .map(challenge => {
+                const cp = challenge.center_point;
+                if (cp && cp.latitude && cp.longitude) {
+                    const distance = getDistanceInMeters(
+                        userLocation.latitude,
+                        userLocation.longitude,
+                        Number(cp.latitude),
+                        Number(cp.longitude)
+                    );
+                    return { ...challenge, _distance: distance };
+                }
+                return { ...challenge, _distance: Infinity };
+            })
+            .sort((a, b) => a._distance - b._distance);
+    }, [challenges, userLocation]);
+
+    // Format distance for display
+    const formatDistance = (dist) => {
+        if (dist === null || dist === undefined || dist === Infinity) return "";
+        if (dist < 1000) return `${Math.round(dist)} m`;
+        return `${(dist / 1000).toFixed(1)} km`;
+    };
+
     const [expandedIds, setExpandedIds] = useState({});
     const toggleExpand = (id) =>
         setExpandedIds(prev => ({ ...prev, [id]: !prev[id] }));
@@ -42,7 +126,7 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
 
     return (
         <FlatList
-            data={challenges}
+            data={sortedChallenges}
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={styles.list}
             refreshControl={
@@ -62,27 +146,30 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                         activeOpacity={0.8}
                     >
                         <View style={styles.challengeHeaderRow}>
-                            <Text style={styles.challengeName}>{item.name}</Text>
+                            <Text style={styles.challengeName}>{item.name} {formatDistance(item._distance) && (
+                                <Text style={styles.distanceInline}>📍 {formatDistance(item._distance)}</Text>
+                            )}</Text>
                             <View style={styles.headerActions}>
-                                <TouchableOpacity
-                                    style={styles.mapButton}
-                                    onPress={(e) => {
-                                        // Prevent the click from bubbling up to the expand/collapse tracker
-                                        e.stopPropagation();
-                                        onOpenMap && onOpenMap(item);
-                                    }}
-                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                >
-                                    <Text style={styles.mapIcon}>📍 Map</Text>
-                                </TouchableOpacity>
+                                <PulsingIcon>
+                                    <TouchableOpacity
+                                        style={styles.mapButton}
+                                        onPress={(e) => {
+                                            e.stopPropagation();
+                                            onOpenMap && onOpenMap(item);
+                                        }}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    >
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <Text style={styles.mapIconEmoji}>📍</Text>
+                                            <Text style={styles.mapIconText}> Map</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </PulsingIcon>
                                 <Text style={styles.chevron}>
                                     {expandedIds[item.id] ? '▲' : '▼'}
                                 </Text>
                             </View>
                         </View>
-                        {item.description ? (
-                            <Text style={styles.challengeDesc}>{item.description}</Text>
-                        ) : null}
                     </TouchableOpacity>
 
                     {/* Areas — only shown when expanded */}
@@ -91,10 +178,17 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                             <Text style={styles.areasLabel}>Areas ({item.areas.length})</Text>
                             {item.areas.map((area) => (
                                 <View key={area.id} style={styles.areaRow}>
-                                    <View style={[
-                                        styles.statusDot,
-                                        { backgroundColor: area.status === 1 ? '#4CAF50' : '#bbb' }
-                                    ]} />
+                                    <View style={styles.statusDotContainer}>
+                                        {area.status === 0 && (
+                                            <PulsingIcon>
+                                                <View style={[styles.statusDot, { backgroundColor: '#bbb', position: 'absolute' }]} />
+                                            </PulsingIcon>
+                                        )}
+                                        <View style={[
+                                            styles.statusDot,
+                                            { backgroundColor: area.status === 1 ? '#4CAF50' : '#bbb' }
+                                        ]} />
+                                    </View>
                                     <View style={styles.areaInfo}>
                                         <Text style={styles.areaName}>{area.name}</Text>
                                         {area.description ? (
@@ -140,15 +234,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     mapButton: {
-        backgroundColor: 'rgba(255,255,255,0.25)',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.4)',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
         marginRight: 10,
     },
-    mapIcon: {
+    mapIconEmoji: {
+        fontSize: 18,
+        marginRight: 4,
+    },
+    mapIconText: {
         color: '#fff',
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 'bold',
     },
     chevron: {
@@ -183,11 +281,17 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
     },
+    statusDotContainer: {
+        width: 10,
+        height: 10,
+        marginRight: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     statusDot: {
         width: 10,
         height: 10,
         borderRadius: 5,
-        marginRight: 10,
     },
     areaInfo: { flex: 1 },
     areaName: {
@@ -199,6 +303,19 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#888',
         marginTop: 2,
+    },
+    descRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 4,
+    },
+    distanceInline: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+        opacity: 0.85,
+        marginLeft: 8,
     },
     error: { color: 'red', textAlign: 'center', marginTop: 40 },
     empty: { textAlign: 'center', color: '#999', marginTop: 40 },

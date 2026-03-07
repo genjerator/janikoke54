@@ -16,6 +16,9 @@
       "channel": "preview"
     },
     "production": {
+      "env": {
+        "SENTRY_AUTH_TOKEN": "@sentry_auth_token"
+      },
       "android": {
         "buildType": "apk"
       },

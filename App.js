@@ -137,7 +137,7 @@ export default Sentry.wrap(function App() {
             }}
           >
             <Text style={[styles.menuText, currentScreen === 'topscore' && styles.menuTextActive]}>
-              ⭐ Top Score
+              ⭐ Score
             </Text>
           </TouchableOpacity>
         </View>

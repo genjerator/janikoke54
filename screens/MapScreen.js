@@ -6,6 +6,61 @@ import { getDistanceInMeters, getPolygonCenter, isPointInPolygon } from '../util
 import { postInsidePolygon, fetchChallengesData } from '../axios/ApiCalls';
 import * as Sentry from '@sentry/react-native';
 
+const PulsingMarker = ({ coordinate, isCompleted, title }) => {
+    const scale = useRef(new Animated.Value(1)).current;
+    const opacity = useRef(new Animated.Value(0.7)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.parallel([
+                Animated.timing(scale, {
+                    toValue: 2.5,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(opacity, {
+                    toValue: 0,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
+
+    const pulseColor = isCompleted ? 'rgba(244, 67, 54, 0.4)' : 'rgba(76, 175, 80, 0.4)';
+    const dotColor = isCompleted ? '#F44336' : '#4CAF50';
+
+    return (
+        <Marker coordinate={coordinate} title={title}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
+                {!isCompleted && (
+                    <Animated.View
+                        style={{
+                            position: 'absolute',
+                            width: 20,
+                            height: 20,
+                            borderRadius: 10,
+                            backgroundColor: pulseColor,
+                            transform: [{ scale }],
+                            opacity,
+                        }}
+                    />
+                )}
+                <View style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: 6,
+                    backgroundColor: dotColor,
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }} />
+            </View>
+        </Marker>
+    );
+};
+
 const MapScreen = ({ challenge, user, onBack }) => {
     const [locationPermission, setLocationPermission] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
@@ -214,14 +269,23 @@ const MapScreen = ({ challenge, user, onBack }) => {
             >
                 {allPolygons.map((area, index) => {
                     const isCompleted = area.status === 1;
+                    const center = getPolygonCenter(area.polyCoords);
                     return (
-                        <Polygon
-                            key={`${area.id}-${index}`}
-                            coordinates={area.polyCoords}
-                            fillColor={isCompleted ? 'rgba(244, 67, 54, 0.4)':'rgba(76, 175, 80, 0.4)' }
-                            strokeColor={isCompleted ? '#F44336':'#4CAF50' }
-                            strokeWidth={2}
-                        />
+                        <React.Fragment key={`${area.id}-${index}`}>
+                            <Polygon
+                                coordinates={area.polyCoords}
+                                fillColor={isCompleted ? 'rgba(244, 67, 54, 0.4)':'rgba(76, 175, 80, 0.4)' }
+                                strokeColor={isCompleted ? '#F44336':'#4CAF50' }
+                                strokeWidth={2}
+                            />
+                            {center && (
+                                <PulsingMarker 
+                                    coordinate={center} 
+                                    isCompleted={isCompleted} 
+                                    title={area.name} 
+                                />
+                            )}
+                        </React.Fragment>
                     );
                 })}
             </MapView>
