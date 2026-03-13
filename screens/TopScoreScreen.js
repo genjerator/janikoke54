@@ -1,13 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, BackHandler } from 'react-native';
 import { API_URL } from '../Constants';
 import { fetchResults } from '../axios/ApiCalls';
 
-const TopScoreScreen = ({ user }) => {
+const TopScoreScreen = ({ user, onBack }) => {
     const [groupedScores, setGroupedScores] = useState([]);
     const [expandedIds, setExpandedIds] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        const backAction = () => {
+            if (onBack) {
+                onBack();
+                return true;
+            }
+            return false;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, [onBack]);
 
     useEffect(() => {
         const loadScores = async () => {

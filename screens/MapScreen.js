@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Vibration } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Vibration, BackHandler } from 'react-native';
 import MapView, { Marker, Polygon } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getDistanceInMeters, getPolygonCenter, isPointInPolygon } from '../utils/geo';
@@ -80,6 +80,24 @@ const MapScreen = ({ challenge, user, onBack }) => {
             }
         };
     }, []);
+
+    // Handle hardware back button
+    useEffect(() => {
+        const backAction = () => {
+            if (onBack) {
+                onBack();
+                return true; // Return true to indicate we handled the event and prevent default behavior
+            }
+            return false;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, [onBack]);
 
     // Get all valid polygons from the challenge areas
     const allPolygons = React.useMemo(() => {

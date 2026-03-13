@@ -79,7 +79,7 @@ export default Sentry.wrap(function App() {
       return <MapScreen challenge={activeChallenge} user={loggedUser} onBack={() => setActiveChallenge(null)} />;
     }
     if (currentScreen === 'challenges') return <ChallengesScreen user={loggedUser} onOpenMap={setActiveChallenge} />;
-    if (currentScreen === 'topscore') return <TopScoreScreen user={loggedUser} />;
+    if (currentScreen === 'topscore') return <TopScoreScreen user={loggedUser} onBack={() => setCurrentScreen('challenges')} />;
     return (
       <View style={styles.home}>
         <Text style={styles.welcome}>Welcome{loggedUser ? `, ${loggedUser.name || loggedUser.email}` : ''}!</Text>
