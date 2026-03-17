@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, SafeAreaView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from './app/Login';
+import Register from './app/Register';
+import ForgotPassword from './app/ForgotPassword';
 import ChallengesScreen from './screens/ChallengesScreen';
 import TopScoreScreen from './screens/TopScoreScreen';
 import MapScreen from './screens/MapScreen';
@@ -29,6 +31,8 @@ Sentry.init({
 
 export default Sentry.wrap(function App() {
   const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [loggedUser, setLoggedUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('home');
   const [activeChallenge, setActiveChallenge] = useState(null);
@@ -72,8 +76,14 @@ export default Sentry.wrap(function App() {
 
 
   const renderScreen = () => {
+    if (showForgotPassword) {
+      return <ForgotPassword onBack={() => { setShowForgotPassword(false); setShowLogin(true); }} />;
+    }
+    if (showRegister) {
+      return <Register onRegisterSuccess={handleLoginSuccess} onBack={() => { setShowRegister(false); setShowLogin(true); }} />;
+    }
     if (showLogin) {
-      return <Login onLoginSuccess={handleLoginSuccess} onBack={() => setShowLogin(false)} />;
+      return <Login onLoginSuccess={handleLoginSuccess} onBack={() => setShowLogin(false)} onGoToRegister={() => { setShowLogin(false); setShowRegister(true); }} onGoToForgotPassword={() => { setShowLogin(false); setShowForgotPassword(true); }} />;
     }
     if (activeChallenge) {
       return <MapScreen challenge={activeChallenge} user={loggedUser} onBack={() => setActiveChallenge(null)} />;
@@ -88,9 +98,14 @@ export default Sentry.wrap(function App() {
           Explore your surroundings, complete geographical challenges, and collect points to climb the scoreboard.
         </Text>
         {!loggedUser ? (
-          <TouchableOpacity style={styles.getStartedBtn} onPress={() => setShowLogin(true)}>
-            <Text style={styles.getStartedBtnText}>Get Started</Text>
-          </TouchableOpacity>
+          <View style={styles.authButtons}>
+            <TouchableOpacity style={styles.getStartedBtn} onPress={() => setShowLogin(true)}>
+              <Text style={styles.getStartedBtnText}>Sign In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.registerBtn} onPress={() => setShowRegister(true)}>
+              <Text style={styles.registerBtnText}>Create Account</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <TouchableOpacity style={styles.getStartedBtn} onPress={() => setCurrentScreen('challenges')}>
             <Text style={styles.getStartedBtnText}>View Challenges</Text>
@@ -108,10 +123,13 @@ export default Sentry.wrap(function App() {
         {loggedUser ? (
           <View style={styles.topBarRight}>
             <Text style={styles.userText}>👤 {loggedUser.name || loggedUser.email || 'User'}</Text>
-            <Button title="Logout" onPress={handleLogout} color="#fff" />
+            <Button title="Logout" onPress={handleLogout} />
           </View>
         ) : (
-          <Button title="Login" onPress={() => setShowLogin(true)} color="#fff" />
+          <View style={styles.topBarRight}>
+            <Button title="Login" onPress={() => setShowLogin(true)} />
+            <Button title="Register" onPress={() => setShowRegister(true)} />
+          </View>
         )}
       </View>
 
@@ -159,28 +177,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topBar: {
-    backgroundColor: '#4A90E2',
+    marginTop: Platform.OS === 'android' ? 24 : 0, // Roughly standard height for Android status bar if StatusBar.currentHeight isn't firing
+    backgroundColor: '#fff',
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    color: '#000',
   },
   topBarTitle: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#000',
   },
   topBarRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    color: '#000',
   },
+
   userText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
     marginRight: 8,
+    color: '#000',
   },
   menu: {
     flexDirection: 'row',
@@ -250,6 +274,24 @@ const styles = StyleSheet.create({
   },
   getStartedBtnText: {
     color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  authButtons: {
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 20,
+    width: '100%',
+  },
+  registerBtn: {
+    borderWidth: 2,
+    borderColor: '#4A90E2',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+  },
+  registerBtnText: {
+    color: '#4A90E2',
     fontSize: 18,
     fontWeight: 'bold',
   },

@@ -4,34 +4,58 @@ import {
     ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { API_URL } from '../Constants';
+import { AUTH_URL } from '../Constants';
 
-const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword }) => {
+const ForgotPassword = ({ onBack }) => {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
-    const handleLogin = async () => {
-        if (!email || !password) { setError('Please fill in all fields'); return; }
+    const handleReset = async () => {
+        if (!email) { setError('Please enter your email'); return; }
         setError('');
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/login`, {
+            const response = await fetch(`${AUTH_URL}/forgot-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email }),
             });
             const data = await response.json();
-            if (!response.ok) { setError(data.message || 'Invalid credentials'); return; }
-            onLoginSuccess && onLoginSuccess(data);
+            if (!response.ok) { 
+                setError(data.message || 'Failed to send reset email'); 
+                return; 
+            }
+            setSuccess(true);
         } catch (e) {
             setError('Network error: could not reach the server');
         } finally {
             setLoading(false);
         }
     };
+
+    if (success) {
+        return (
+            <View style={styles.wrapper}>
+                <View style={styles.container}>
+                    <View style={styles.header}>
+                        <View style={[styles.logoCircle, { backgroundColor: '#27ae60' }]}>
+                            <MaterialIcons name="mark-email-read" size={32} color="#fff" />
+                        </View>
+                        <Text style={styles.appName}>Check your email</Text>
+                        <Text style={[styles.subtitle, { marginTop: 12, textAlign: 'center', lineHeight: 20 }]}>
+                            If an account with that email exists, we've sent a password reset link to{' '}
+                            <Text style={{ fontWeight: '700', color: '#333' }}>{email}</Text>.
+                        </Text>
+                    </View>
+                    <TouchableOpacity style={styles.registerButton} onPress={onBack}>
+                        <Text style={styles.registerButtonText}>Back to Login</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <KeyboardAvoidingView
@@ -42,10 +66,12 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
 
                 <View style={styles.header}>
                     <View style={styles.logoCircle}>
-                        <MaterialIcons name="terrain" size={32} color="#fff" />
+                        <MaterialIcons name="lock-reset" size={32} color="#fff" />
                     </View>
-                    <Text style={styles.appName}>Janikoke</Text>
-                    <Text style={styles.subtitle}>Sign in to continue</Text>
+                    <Text style={styles.appName}>Reset Password</Text>
+                    <Text style={[styles.subtitle, { textAlign: 'center', marginTop: 8 }]}>
+                        Enter your email address and we'll send you a link to reset your password.
+                    </Text>
                 </View>
 
                 <View style={styles.card}>
@@ -62,27 +88,6 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                         />
                     </View>
 
-                    <View style={styles.inputWrapper}>
-                        <MaterialIcons name="lock-outline" size={18} color="#999" style={styles.inputIcon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Password"
-                            placeholderTextColor="#aaa"
-                            onChangeText={setPassword}
-                            value={password}
-                            secureTextEntry={!showPassword}
-                        />
-                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                            <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={18} color="#999" />
-                        </TouchableOpacity>
-                    </View>
-
-                    {onGoToForgotPassword && (
-                        <TouchableOpacity style={styles.forgotLink} onPress={onGoToForgotPassword}>
-                            <Text style={styles.forgotLinkText}>Forgot Password?</Text>
-                        </TouchableOpacity>
-                    )}
-
                     {error ? (
                         <View style={styles.errorBox}>
                             <MaterialIcons name="error-outline" size={14} color="#c0392b" />
@@ -91,29 +96,21 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                     ) : null}
 
                     <TouchableOpacity
-                        style={[styles.loginButton, loading && styles.buttonDisabled]}
-                        onPress={handleLogin}
+                        style={[styles.registerButton, loading && styles.buttonDisabled]}
+                        onPress={handleReset}
                         disabled={loading}
                     >
                         {loading
                             ? <ActivityIndicator color="#fff" size="small" />
-                            : <Text style={styles.loginButtonText}>Sign in</Text>
+                            : <Text style={styles.registerButtonText}>Send Reset Link</Text>
                         }
                     </TouchableOpacity>
                 </View>
 
-                {onGoToRegister && (
-                    <TouchableOpacity style={styles.registerLink} onPress={onGoToRegister}>
-                        <Text style={styles.registerLinkText}>
-                            Don't have an account? <Text style={styles.registerLinkBold}>Create one</Text>
-                        </Text>
-                    </TouchableOpacity>
-                )}
-
                 {onBack && (
                     <TouchableOpacity style={styles.backButton} onPress={onBack}>
                         <MaterialIcons name="arrow-back" size={16} color="#888" />
-                        <Text style={styles.backText}>Back</Text>
+                        <Text style={styles.backText}>Back to Login</Text>
                     </TouchableOpacity>
                 )}
 
@@ -126,7 +123,7 @@ const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
         backgroundColor: '#f5f5f5',
-        paddingTop: Platform.OS === 'ios' ? 40 : 20, // Keep content away from iOS status bar
+        justifyContent: 'center',
     },
     container: {
         flex: 1,
@@ -141,10 +138,15 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: '#2e7d32',
+        backgroundColor: '#4A90E2',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 12,
+        shadowColor: '#4A90E2',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
     },
     appName: {
         fontSize: 26,
@@ -174,14 +176,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e8e8e8',
         borderRadius: 10,
-        marginBottom: 12,
+        marginBottom: 16,
         paddingHorizontal: 12,
     },
     inputIcon: {
         marginRight: 8,
-    },
-    eyeIcon: {
-        padding: 4,
     },
     input: {
         flex: 1,
@@ -198,33 +197,28 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 12,
     },
-    forgotLink: {
-        alignSelf: 'flex-end',
-        marginTop: 4,
-        marginBottom: 20,
-    },
-    forgotLinkText: {
-        color: '#4A90E2',
-        fontSize: 13,
-        fontWeight: '600',
-    },
     errorText: {
         color: '#c0392b',
         fontSize: 13,
         flex: 1,
     },
-    loginButton: {
-        backgroundColor: '#2e7d32',
+    registerButton: {
+        backgroundColor: '#4A90E2',
         borderRadius: 10,
         height: 48,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 4,
+        shadowColor: '#4A90E2',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+        elevation: 4,
     },
     buttonDisabled: {
         opacity: 0.6,
     },
-    loginButtonText: {
+    registerButtonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
@@ -240,18 +234,6 @@ const styles = StyleSheet.create({
         color: '#888',
         fontSize: 14,
     },
-    registerLink: {
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    registerLinkText: {
-        color: '#888',
-        fontSize: 14,
-    },
-    registerLinkBold: {
-        color: '#4A90E2',
-        fontWeight: '700',
-    },
 });
 
-export default Login;
+export default ForgotPassword;
