@@ -2,12 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Vibration, BackHandler } from 'react-native';
 import MapView, { Marker, Polygon } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { useTranslation } from 'react-i18next';
 import { getDistanceInMeters, getPolygonCenter, isPointInPolygon } from '../utils/geo';
 import { postInsidePolygon, fetchChallengesData } from '../axios/ApiCalls';
 import * as Sentry from '@sentry/react-native';
 
 
 const MapScreen = ({ challenge, user, onBack }) => {
+    const { t } = useTranslation();
     const [locationPermission, setLocationPermission] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const [closestArea, setClosestArea] = useState(null);
@@ -218,7 +220,7 @@ const MapScreen = ({ challenge, user, onBack }) => {
         <View style={styles.container}>
             {/* Header / Breadcrumb */}
             <TouchableOpacity style={styles.header} onPress={onBack}>
-                <Text style={styles.breadcrumbText}>Challenges</Text>
+                <Text style={styles.breadcrumbText}>{t('challenges.title')}</Text>
                 <Text style={styles.breadcrumbSeparator}> / </Text>
                 <Text style={styles.title} numberOfLines={1}>{challenge?.name}</Text>
             </TouchableOpacity>
@@ -258,7 +260,7 @@ const MapScreen = ({ challenge, user, onBack }) => {
             {/* Closest Area Info Pill */}
             {closestArea && (
                 <Animated.View style={[styles.closestPill, { opacity: pillOpacity }]}>
-                    <Text style={styles.closestLabel}>Closest Area:</Text>
+                    <Text style={styles.closestLabel}>{t('map.closestArea')}</Text>
                     <Text style={styles.closestName} numberOfLines={1}>{closestArea.name}</Text>
                     <View style={styles.distanceBadge}>
                         <Text style={styles.distanceText}>📍 {formatDistance(closestArea.distance)}</Text>
@@ -271,14 +273,14 @@ const MapScreen = ({ challenge, user, onBack }) => {
                 <View style={styles.popupOverlay}>
                     <View style={styles.popupBox}>
                         <Text style={styles.popupEmoji}>🎉</Text>
-                        <Text style={styles.popupTitle}>Congratulations!</Text>
-                        <Text style={styles.popupText}>You have collected a point.</Text>
+                        <Text style={styles.popupTitle}>{t('score.congratulations')}</Text>
+                        <Text style={styles.popupText}>{t('score.collectedPoint')}</Text>
                         <Text style={styles.popupSubtext}>({collectedArea.name})</Text>
-                        <TouchableOpacity 
-                            style={styles.closeButton} 
+                        <TouchableOpacity
+                            style={styles.closeButton}
                             onPress={() => setCollectedArea(null)}
                         >
-                            <Text style={styles.closeButtonText}>Close</Text>
+                            <Text style={styles.closeButtonText}>{t('score.close')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

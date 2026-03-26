@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import * as Sentry from '@sentry/react-native';
 import * as Location from 'expo-location';
-
+import { useTranslation } from 'react-i18next';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, Animated } from 'react-native';
 import { API_URL } from '../Constants';
 import { getDistanceInMeters } from '../utils/geo';
@@ -34,6 +34,7 @@ const PulsingIcon = ({ children }) => {
 };
 
 const ChallengesScreen = ({ user, onOpenMap }) => {
+    const { t } = useTranslation();
     const [challenges, setChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -80,7 +81,7 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
             Sentry.logger.info("fetchChallenges",data);
             setChallenges(data.data || data);
         } catch (e) {
-            setError('Could not load challenges');
+            setError(t('errors.couldNotLoadChallenges'));
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -161,7 +162,7 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                                     >
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <Text style={styles.mapIconEmoji}>📍</Text>
-                                            <Text style={styles.mapIconText}> Map</Text>
+                                            <Text style={styles.mapIconText}> {t('challenges.map')}</Text>
                                         </View>
                                     </TouchableOpacity>
                                 </PulsingIcon>
@@ -175,7 +176,7 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                     {/* Areas — only shown when expanded */}
                     {expandedIds[item.id] && item.areas && item.areas.length > 0 && (
                         <View style={styles.areasContainer}>
-                            <Text style={styles.areasLabel}>Areas ({item.areas.length})</Text>
+                            <Text style={styles.areasLabel}>{t('challenges.areasCount', { count: item.areas.length })}</Text>
                             {item.areas.map((area) => (
                                 <View key={area.id} style={styles.areaRow}>
                                     <View style={styles.statusDotContainer}>
@@ -201,7 +202,7 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                     )}
                 </View>
             )}
-            ListEmptyComponent={<Text style={styles.empty}>No challenges found.</Text>}
+            ListEmptyComponent={<Text style={styles.empty}>{t('challenges.noChallenges')}</Text>}
         />
     );
 };

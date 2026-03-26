@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, BackHandler } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { API_URL } from '../Constants';
 import { fetchResults } from '../axios/ApiCalls';
 
 const TopScoreScreen = ({ user, onBack }) => {
+    const { t } = useTranslation();
     const [groupedScores, setGroupedScores] = useState([]);
     const [expandedIds, setExpandedIds] = useState({});
     const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ const TopScoreScreen = ({ user, onBack }) => {
                 }
             } catch (err) {
                 console.error("Error loading scores:", err);
-                setError('Failed to load scores');
+                setError(t('errors.failedToLoadScores'));
             } finally {
                 setLoading(false);
             }
@@ -80,8 +82,8 @@ const TopScoreScreen = ({ user, onBack }) => {
             contentContainerStyle={styles.list}
             ListHeaderComponent={
                 <View style={styles.header}>
-                    <Text style={styles.headerText}>⭐ My Scoreboard</Text>
-                    <Text style={styles.grandTotalText}>{grandTotal} Total Points</Text>
+                    <Text style={styles.headerText}>⭐ {t('score.myScoreboard')}</Text>
+                    <Text style={styles.grandTotalText}>{t('score.totalPoints', { points: grandTotal })}</Text>
                 </View>
             }
             renderItem={({ item }) => {
@@ -95,10 +97,10 @@ const TopScoreScreen = ({ user, onBack }) => {
                         >
                             <View style={styles.headerMain}>
                                 <Text style={styles.challengeName}>{item.name}</Text>
-                                <Text style={styles.countText}>{item.data.length} collections</Text>
+                                <Text style={styles.countText}>{t('score.collections', { count: item.data.length })}</Text>
                             </View>
                             <View style={styles.headerRight}>
-                                <Text style={styles.totalPoints}>{item.totalPoints} pts</Text>
+                                <Text style={styles.totalPoints}>{t('score.points', { points: item.totalPoints })}</Text>
                                 <Text style={styles.chevron}>{isExpanded ? '▲' : '▼'}</Text>
                             </View>
                         </TouchableOpacity>
@@ -113,7 +115,7 @@ const TopScoreScreen = ({ user, onBack }) => {
                                                 {new Date(col.created_at_unix * 1000).toLocaleDateString()}
                                             </Text>
                                         </View>
-                                        <Text style={styles.detailPoints}>+{col.points} pts</Text>
+                                        <Text style={styles.detailPoints}>{t('score.plusPoints', { points: col.points })}</Text>
                                     </View>
                                 ))}
                             </View>
@@ -121,7 +123,7 @@ const TopScoreScreen = ({ user, onBack }) => {
                     </View>
                 );
             }}
-            ListEmptyComponent={<Text style={styles.empty}>No collections yet. Start exploring!</Text>}
+            ListEmptyComponent={<Text style={styles.empty}>{t('score.noCollections')}</Text>}
         />
     );
 };

@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Jani Koke",
+    "welcome": "Welcome",
+    "welcomeUser": "Welcome, {{name}}!",
+    "readyText": "Are you ready for a challenge?",
+    "description": "Explore your surroundings, complete geographical challenges, and collect points to climb the scoreboard."
+  },
+  "auth": {
+    "login": "Login",
+    "signIn": "Sign in",
+    "signInToContinue": "Sign in to continue",
+    "logout": "Logout",
+    "register": "Register",
+    "createAccount": "Create Account",
+    "dontHaveAccount": "Don't have an account?",
+    "createOne": "Create one",
+    "backToLogin": "Back to Login",
+    "back": "Back",
+    "emailAddress": "Email address",
+    "password": "Password",
+    "fullName": "Full name",
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "checkEmail": "Check your email",
+    "verificationSent": "We've sent a verification link to {{email}}. Please verify your email before signing in.",
+    "resetLinkSent": "If an account with that email exists, we've sent a password reset link to {{email}}.",
+    "goToLogin": "Go to Login",
+    "resetPasswordDescription": "Enter your email address and we'll send you a link to reset your password."
+  },
+  "errors": {
+    "fillAllFields": "Please fill in all fields",
+    "invalidCredentials": "Invalid credentials",
+    "networkError": "Network error: could not reach the server",
+    "registrationFailed": "Registration failed",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "enterEmail": "Please enter your email",
+    "failedToSendReset": "Failed to send reset email",
+    "couldNotLoadChallenges": "Could not load challenges",
+    "failedToLoadScores": "Failed to load scores",
+    "profileUpdateFailed": "Profile update failed"
+  },
+  "challenges": {
+    "title": "Challenges",
+    "viewChallenges": "View Challenges",
+    "noChallenges": "No challenges found.",
+    "map": "Map",
+    "areas": "Areas",
+    "areasCount": "Areas ({{count}})"
+  },
+  "score": {
+    "title": "Score",
+    "myScoreboard": "My Scoreboard",
+    "totalPoints": "{{points}} Total Points",
+    "points": "{{points}} pts",
+    "plusPoints": "+{{points}} pts",
+    "collections": "{{count}} collections",
+    "noCollections": "No collections yet. Start exploring!",
+    "congratulations": "Congratulations!",
+    "collectedPoint": "You have collected a point.",
+    "close": "Close"
+  },
+  "map": {
+    "closestArea": "Closest Area:"
+  },
+  "profile": {
+    "title": "Edit Profile",
+    "subtitle": "Update your personal information",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "leaveEmptyKeepCurrent": "Leave empty to keep current",
+    "dateOfBirth": "Date of Birth",
+    "selectBirthDate": "Select your birth date",
+    "language": "Language",
+    "saveChanges": "Save Changes",
+    "success": "Success",
+    "profileUpdated": "Profile updated successfully",
+    "user": "User"
+  },
+  "languages": {
+    "en": "English",
+    "sr": "Serbian",
+    "rsn": "Rusyn"
+  }
+}

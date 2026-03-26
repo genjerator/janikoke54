@@ -58,7 +58,8 @@
           "organization": "genjerator"
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

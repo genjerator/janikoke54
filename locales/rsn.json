@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Яни Коке",
+    "welcome": "Витайме",
+    "welcomeUser": "Витайме, {{name}}!",
+    "readyText": "Чи сце готови на виволанє?",
+    "description": "Розгляднїце свойо околє, закінчце ґеоґрафски виволаня и збераце punktи же бисце ше попняли на таблїцу резултатох."
+  },
+  "auth": {
+    "login": "Приголошенє",
+    "signIn": "Приголошиц ше",
+    "signInToContinue": "Приголошце ше же бисце предлужели",
+    "logout": "Одголошенє",
+    "register": "Реґистрация",
+    "createAccount": "Створиц конто",
+    "dontHaveAccount": "Нє маце конто?",
+    "createOne": "Створце го",
+    "backToLogin": "Назад на приголошенє",
+    "back": "Назад",
+    "emailAddress": "Адреса електронскей пошти",
+    "password": "Гесло",
+    "fullName": "Повне мено",
+    "confirmPassword": "Потвердзиц гесло",
+    "forgotPassword": "Забули сце гесло?",
+    "resetPassword": "Ресетовац гесло",
+    "sendResetLink": "Послац линк за ресетованє",
+    "checkEmail": "Перевирце емейл",
+    "verificationSent": "Послали зме вам линк за верификацию на {{email}}. Просиме вас же бисце верификовали емейл прейґ як ше приголошице.",
+    "resetLinkSent": "Кед екзистує конто з тоту адресу, послали зме линк за ресетованє гесла на {{email}}.",
+    "goToLogin": "Iсц на приголошенє",
+    "resetPasswordDescription": "Унєшце вашу адресу електронскей пошти и пошлєме вам линк за ресетованє гесла."
+  },
+  "errors": {
+    "fillAllFields": "Просиме попнїце шицки поля",
+    "invalidCredentials": "Нєправилни податки",
+    "networkError": "Хиба мрежи: нє можлїве дойсц по сервер",
+    "registrationFailed": "Реґистрация ше нє удала",
+    "passwordsDoNotMatch": "Гесла ше нє зодповедаю",
+    "passwordMinLength": "Гесло муши мац найменєй 8 знаки",
+    "enterEmail": "Просиме унєшце ваш емейл",
+    "failedToSendReset": "Посланє емейла за ресетованє ше нє удало",
+    "couldNotLoadChallenges": "Нє можлїве начитац виволаня",
+    "failedToLoadScores": "Нє можлїве начитац резултати",
+    "profileUpdateFailed": "Актуализация профилу ше нє удала"
+  },
+  "challenges": {
+    "title": "Виволаня",
+    "viewChallenges": "Поглядац виволаня",
+    "noChallenges": "Нє знайдзени анї єдно виволанє.",
+    "map": "Мапа",
+    "areas": "Просторе",
+    "areasCount": "Просторе ({{count}})"
+  },
+  "score": {
+    "title": "Резултат",
+    "myScoreboard": "Моя таблїца резултатох",
+    "totalPoints": "{{points}} укупно punktох",
+    "points": "{{points}} punktи",
+    "plusPoints": "+{{points}} punktи",
+    "collections": "{{count}} колекцийох",
+    "noCollections": "Ище нєт колекцийох. Почнїце розгляданє!",
+    "congratulations": "Честитаме!",
+    "collectedPoint": "Освоєли сце punkt.",
+    "close": "Заперц"
+  },
+  "map": {
+    "closestArea": "Найблїжши простор:"
+  },
+  "profile": {
+    "title": "Уредзиц профил",
+    "subtitle": "Актуализуйце свойо особни податки",
+    "newPassword": "Нове гесло",
+    "confirmNewPassword": "Потвердзиц нове гесло",
+    "leaveEmptyKeepCurrent": "Нєхайце порожнє же бисце задржали актуалне",
+    "dateOfBirth": "Датум народзеня",
+    "selectBirthDate": "Виберце датум народзеня",
+    "language": "Язик",
+    "saveChanges": "Зачовац змени",
+    "success": "Успих",
+    "profileUpdated": "Профил успишно актуализовани",
+    "user": "Хаснователь"
+  },
+  "languages": {
+    "en": "Анґлийски",
+    "sr": "Сербски",
+    "rsn": "Руски"
+  }
+}

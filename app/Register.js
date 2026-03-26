@@ -4,9 +4,11 @@ import {
     ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { AUTH_URL } from '../Constants';
 
 const Register = ({ onBack, onRegisterSuccess }) => {
+    const { t } = useTranslation();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -21,15 +23,15 @@ const Register = ({ onBack, onRegisterSuccess }) => {
     const handleRegister = async () => {
         setFieldErrors({});
         if (!name || !email || !password || !passwordConfirmation) {
-            setError('Please fill in all fields');
+            setError(t('errors.fillAllFields'));
             return;
         }
         if (password !== passwordConfirmation) {
-            setError('Passwords do not match');
+            setError(t('errors.passwordsDoNotMatch'));
             return;
         }
         if (password.length < 8) {
-            setError('Password must be at least 8 characters');
+            setError(t('errors.passwordMinLength'));
             return;
         }
         setError('');
@@ -52,14 +54,14 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                     const firstError = Object.values(data.errors)[0];
                     setError(Array.isArray(firstError) ? firstError[0] : firstError);
                 } else {
-                    setError(data.message || 'Registration failed');
+                    setError(data.message || t('errors.registrationFailed'));
                 }
                 return;
             }
             // Registration successful — show verification notice
             setRegistered(true);
         } catch (e) {
-            setError('Network error: could not reach the server');
+            setError(t('errors.networkError'));
         } finally {
             setLoading(false);
         }
@@ -73,15 +75,13 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                         <View style={[styles.logoCircle, { backgroundColor: '#27ae60' }]}>
                             <MaterialIcons name="mark-email-read" size={32} color="#fff" />
                         </View>
-                        <Text style={styles.appName}>Check your email</Text>
+                        <Text style={styles.appName}>{t('auth.checkEmail')}</Text>
                         <Text style={[styles.subtitle, { marginTop: 12, textAlign: 'center', lineHeight: 20 }]}>
-                            We've sent a verification link to{' '}
-                            <Text style={{ fontWeight: '700', color: '#333' }}>{email}</Text>.{' '}
-                            Please verify your email before signing in.
+                            {t('auth.verificationSent', { email })}
                         </Text>
                     </View>
                     <TouchableOpacity style={styles.registerButton} onPress={onBack}>
-                        <Text style={styles.registerButtonText}>Go to Login</Text>
+                        <Text style={styles.registerButtonText}>{t('auth.goToLogin')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -104,7 +104,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                             <MaterialIcons name="person-add" size={32} color="#fff" />
                         </View>
                         <Text style={styles.appName}>Janikoke</Text>
-                        <Text style={styles.subtitle}>Create your account</Text>
+                        <Text style={styles.subtitle}>{t('auth.createAccount')}</Text>
                     </View>
 
                     <View style={styles.card}>
@@ -113,7 +113,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                             <MaterialIcons name="person-outline" size={18} color="#999" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Full name"
+                                placeholder={t('auth.fullName')}
                                 placeholderTextColor="#aaa"
                                 onChangeText={setName}
                                 value={name}
@@ -126,7 +126,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                             <MaterialIcons name="email" size={18} color="#999" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Email address"
+                                placeholder={t('auth.emailAddress')}
                                 placeholderTextColor="#aaa"
                                 onChangeText={setEmail}
                                 value={email}
@@ -140,7 +140,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                             <MaterialIcons name="lock-outline" size={18} color="#999" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Password"
+                                placeholder={t('auth.password')}
                                 placeholderTextColor="#aaa"
                                 onChangeText={setPassword}
                                 value={password}
@@ -156,7 +156,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                             <MaterialIcons name="lock" size={18} color="#999" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Confirm password"
+                                placeholder={t('auth.confirmPassword')}
                                 placeholderTextColor="#aaa"
                                 onChangeText={setPasswordConfirmation}
                                 value={passwordConfirmation}
@@ -181,7 +181,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                         >
                             {loading
                                 ? <ActivityIndicator color="#fff" size="small" />
-                                : <Text style={styles.registerButtonText}>Create Account</Text>
+                                : <Text style={styles.registerButtonText}>{t('auth.createAccount')}</Text>
                             }
                         </TouchableOpacity>
                     </View>
@@ -189,7 +189,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                     {onBack && (
                         <TouchableOpacity style={styles.backButton} onPress={onBack}>
                             <MaterialIcons name="arrow-back" size={16} color="#888" />
-                            <Text style={styles.backText}>Back to Login</Text>
+                            <Text style={styles.backText}>{t('auth.backToLogin')}</Text>
                         </TouchableOpacity>
                     )}
 

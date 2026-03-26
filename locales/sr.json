@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Jani Koke",
+    "welcome": "Dobrodošli",
+    "welcomeUser": "Dobrodošli, {{name}}!",
+    "readyText": "Da li ste spremni za izazov?",
+    "description": "Istražite okolinu, završite geografske izazove i osvajajte poene da biste se popeli na tabelu rezultata."
+  },
+  "auth": {
+    "login": "Prijava",
+    "signIn": "Prijavi se",
+    "signInToContinue": "Prijavite se da nastavite",
+    "logout": "Odjava",
+    "register": "Registracija",
+    "createAccount": "Napravi nalog",
+    "dontHaveAccount": "Nemate nalog?",
+    "createOne": "Napravite ga",
+    "backToLogin": "Nazad na prijavu",
+    "back": "Nazad",
+    "emailAddress": "Imejl adresa",
+    "password": "Lozinka",
+    "fullName": "Puno ime",
+    "confirmPassword": "Potvrdi lozinku",
+    "forgotPassword": "Zaboravili ste lozinku?",
+    "resetPassword": "Resetuj lozinku",
+    "sendResetLink": "Pošalji link za resetovanje",
+    "checkEmail": "Proverite imejl",
+    "verificationSent": "Poslali smo link za verifikaciju na {{email}}. Molimo vas da verifikujete imejl pre nego što se prijavite.",
+    "resetLinkSent": "Ako postoji nalog sa tom imejl adresom, poslali smo link za resetovanje lozinke na {{email}}.",
+    "goToLogin": "Idi na prijavu",
+    "resetPasswordDescription": "Unesite vašu imejl adresu i poslaćemo vam link za resetovanje lozinke."
+  },
+  "errors": {
+    "fillAllFields": "Molimo popunite sva polja",
+    "invalidCredentials": "Neispravni podaci",
+    "networkError": "Greška mreže: nije moguće doći do servera",
+    "registrationFailed": "Registracija nije uspela",
+    "passwordsDoNotMatch": "Lozinke se ne poklapaju",
+    "passwordMinLength": "Lozinka mora imati najmanje 8 karaktera",
+    "enterEmail": "Molimo unesite vaš imejl",
+    "failedToSendReset": "Slanje imejla za resetovanje nije uspelo",
+    "couldNotLoadChallenges": "Nije moguće učitati izazove",
+    "failedToLoadScores": "Nije moguće učitati rezultate",
+    "profileUpdateFailed": "Ažuriranje profila nije uspelo"
+  },
+  "challenges": {
+    "title": "Izazovi",
+    "viewChallenges": "Pogledaj izazove",
+    "noChallenges": "Nije pronađen nijedan izazov.",
+    "map": "Mapa",
+    "areas": "Oblasti",
+    "areasCount": "Oblasti ({{count}})"
+  },
+  "score": {
+    "title": "Rezultat",
+    "myScoreboard": "Moja tabela rezultata",
+    "totalPoints": "{{points}} ukupno poena",
+    "points": "{{points}} poena",
+    "plusPoints": "+{{points}} poena",
+    "collections": "{{count}} kolekcija",
+    "noCollections": "Još nema kolekcija. Počnite istraživanje!",
+    "congratulations": "Čestitamo!",
+    "collectedPoint": "Osvojili ste poen.",
+    "close": "Zatvori"
+  },
+  "map": {
+    "closestArea": "Najbliža oblast:"
+  },
+  "profile": {
+    "title": "Uredi profil",
+    "subtitle": "Ažurirajte svoje lične podatke",
+    "newPassword": "Nova lozinka",
+    "confirmNewPassword": "Potvrdi novu lozinku",
+    "leaveEmptyKeepCurrent": "Ostavite prazno da zadržite trenutnu",
+    "dateOfBirth": "Datum rođenja",
+    "selectBirthDate": "Izaberite datum rođenja",
+    "language": "Jezik",
+    "saveChanges": "Sačuvaj promene",
+    "success": "Uspeh",
+    "profileUpdated": "Profil je uspešno ažuriran",
+    "user": "Korisnik"
+  },
+  "languages": {
+    "en": "Engleski",
+    "sr": "Srpski",
+    "rsn": "Rusinski"
+  }
+}

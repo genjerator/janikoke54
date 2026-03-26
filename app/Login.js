@@ -4,9 +4,11 @@ import {
     ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { API_URL } from '../Constants';
 
 const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword }) => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -14,7 +16,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
     const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async () => {
-        if (!email || !password) { setError('Please fill in all fields'); return; }
+        if (!email || !password) { setError(t('errors.fillAllFields')); return; }
         setError('');
         setLoading(true);
         try {
@@ -24,10 +26,10 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                 body: JSON.stringify({ email, password }),
             });
             const data = await response.json();
-            if (!response.ok) { setError(data.message || 'Invalid credentials'); return; }
+            if (!response.ok) { setError(data.message || t('errors.invalidCredentials')); return; }
             onLoginSuccess && onLoginSuccess(data);
         } catch (e) {
-            setError('Network error: could not reach the server');
+            setError(t('errors.networkError'));
         } finally {
             setLoading(false);
         }
@@ -45,7 +47,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                         <MaterialIcons name="terrain" size={32} color="#fff" />
                     </View>
                     <Text style={styles.appName}>Janikoke</Text>
-                    <Text style={styles.subtitle}>Sign in to continue</Text>
+                    <Text style={styles.subtitle}>{t('auth.signInToContinue')}</Text>
                 </View>
 
                 <View style={styles.card}>
@@ -53,7 +55,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                         <MaterialIcons name="email" size={18} color="#999" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Email address"
+                            placeholder={t('auth.emailAddress')}
                             placeholderTextColor="#aaa"
                             onChangeText={setEmail}
                             value={email}
@@ -66,7 +68,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                         <MaterialIcons name="lock-outline" size={18} color="#999" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Password"
+                            placeholder={t('auth.password')}
                             placeholderTextColor="#aaa"
                             onChangeText={setPassword}
                             value={password}
@@ -79,7 +81,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
 
                     {onGoToForgotPassword && (
                         <TouchableOpacity style={styles.forgotLink} onPress={onGoToForgotPassword}>
-                            <Text style={styles.forgotLinkText}>Forgot Password?</Text>
+                            <Text style={styles.forgotLinkText}>{t('auth.forgotPassword')}</Text>
                         </TouchableOpacity>
                     )}
 
@@ -97,7 +99,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                     >
                         {loading
                             ? <ActivityIndicator color="#fff" size="small" />
-                            : <Text style={styles.loginButtonText}>Sign in</Text>
+                            : <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
                         }
                     </TouchableOpacity>
                 </View>
@@ -105,7 +107,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                 {onGoToRegister && (
                     <TouchableOpacity style={styles.registerLink} onPress={onGoToRegister}>
                         <Text style={styles.registerLinkText}>
-                            Don't have an account? <Text style={styles.registerLinkBold}>Create one</Text>
+                            {t('auth.dontHaveAccount')} <Text style={styles.registerLinkBold}>{t('auth.createOne')}</Text>
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -113,7 +115,7 @@ const Login = ({ onBack, onLoginSuccess, onGoToRegister, onGoToForgotPassword })
                 {onBack && (
                     <TouchableOpacity style={styles.backButton} onPress={onBack}>
                         <MaterialIcons name="arrow-back" size={16} color="#888" />
-                        <Text style={styles.backText}>Back</Text>
+                        <Text style={styles.backText}>{t('auth.back')}</Text>
                     </TouchableOpacity>
                 )}
 

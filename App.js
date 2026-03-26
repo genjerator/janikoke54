@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import './i18n';
+import { saveLanguage } from './i18n';
 import Login from './app/Login';
 import Register from './app/Register';
 import ForgotPassword from './app/ForgotPassword';
 import ChallengesScreen from './screens/ChallengesScreen';
 import TopScoreScreen from './screens/TopScoreScreen';
 import MapScreen from './screens/MapScreen';
+import ProfileEditScreen from './screens/ProfileEditScreen';
 import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
@@ -30,6 +35,7 @@ Sentry.init({
 });
 
 export default Sentry.wrap(function App() {
+  const { t, i18n } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -43,7 +49,13 @@ export default Sentry.wrap(function App() {
       try {
         const savedUser = await AsyncStorage.getItem('user_session');
         if (savedUser) {
-          setLoggedUser(JSON.parse(savedUser));
+          const user = JSON.parse(savedUser);
+          setLoggedUser(user);
+          // Set language from user profile if available
+          if (user.language && user.language !== i18n.language) {
+            await i18n.changeLanguage(user.language);
+            await saveLanguage(user.language);
+          }
         }
       } catch (e) {
         console.error('Failed to load session:', e);
@@ -57,6 +69,11 @@ export default Sentry.wrap(function App() {
     setShowLogin(false);
     try {
       await AsyncStorage.setItem('user_session', JSON.stringify(data));
+      // Set language from user profile if available
+      if (data.language && data.language !== i18n.language) {
+        await i18n.changeLanguage(data.language);
+        await saveLanguage(data.language);
+      }
     } catch (e) {
       console.error('Failed to save session:', e);
     }
@@ -90,25 +107,26 @@ export default Sentry.wrap(function App() {
     }
     if (currentScreen === 'challenges') return <ChallengesScreen user={loggedUser} onOpenMap={setActiveChallenge} />;
     if (currentScreen === 'topscore') return <TopScoreScreen user={loggedUser} onBack={() => setCurrentScreen('challenges')} />;
+    if (currentScreen === 'profile') return <ProfileEditScreen user={loggedUser} onBack={() => setCurrentScreen('challenges')} />;
     return (
       <View style={styles.home}>
-        <Text style={styles.welcome}>Welcome{loggedUser ? `, ${loggedUser.name || loggedUser.email}` : ''}!</Text>
-        <Text style={styles.readyText}>Are you ready for a challenge?</Text>
+        <Text style={styles.welcome}>{loggedUser ? t('app.welcomeUser', { name: loggedUser.name || loggedUser.email }) : t('app.welcome')}!</Text>
+        <Text style={styles.readyText}>{t('app.readyText')}</Text>
         <Text style={styles.homeDescription}>
-          Explore your surroundings, complete geographical challenges, and collect points to climb the scoreboard.
+          {t('app.description')}
         </Text>
         {!loggedUser ? (
           <View style={styles.authButtons}>
             <TouchableOpacity style={styles.getStartedBtn} onPress={() => setShowLogin(true)}>
-              <Text style={styles.getStartedBtnText}>Sign In</Text>
+              <Text style={styles.getStartedBtnText}>{t('auth.signIn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.registerBtn} onPress={() => setShowRegister(true)}>
-              <Text style={styles.registerBtnText}>Create Account</Text>
+              <Text style={styles.registerBtnText}>{t('auth.createAccount')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity style={styles.getStartedBtn} onPress={() => setCurrentScreen('challenges')}>
-            <Text style={styles.getStartedBtnText}>View Challenges</Text>
+            <Text style={styles.getStartedBtnText}>{t('challenges.viewChallenges')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -116,19 +134,27 @@ export default Sentry.wrap(function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>Jani Koke</Text>
+        <Text style={styles.topBarTitle}>{t('app.title')}</Text>
         {loggedUser ? (
           <View style={styles.topBarRight}>
-            <Text style={styles.userText}>👤 {loggedUser.name || loggedUser.email || 'User'}</Text>
-            <Button title="Logout" onPress={handleLogout} />
+            <TouchableOpacity onPress={() => {
+              setCurrentScreen('profile');
+              setActiveChallenge(null);
+            }}>
+              <Text style={[styles.userText, currentScreen === 'profile' && { textDecorationLine: 'underline' }]}>
+                👤 {loggedUser.name || loggedUser.email || t('profile.user')}
+              </Text>
+            </TouchableOpacity>
+            <Button title={t('auth.logout')} onPress={handleLogout} />
           </View>
         ) : (
           <View style={styles.topBarRight}>
-            <Button title="Login" onPress={() => setShowLogin(true)} />
-            <Button title="Register" onPress={() => setShowRegister(true)} />
+            <Button title={t('auth.login')} onPress={() => setShowLogin(true)} />
+            <Button title={t('auth.register')} onPress={() => setShowRegister(true)} />
           </View>
         )}
       </View>
@@ -144,7 +170,7 @@ export default Sentry.wrap(function App() {
             }}
           >
             <Text style={[styles.menuText, currentScreen === 'challenges' && styles.menuTextActive]}>
-              🏆 Challenges
+              🏆 {t('challenges.title')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -155,7 +181,7 @@ export default Sentry.wrap(function App() {
             }}
           >
             <Text style={[styles.menuText, currentScreen === 'topscore' && styles.menuTextActive]}>
-              ⭐ Score
+              ⭐ {t('score.title')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -167,7 +193,8 @@ export default Sentry.wrap(function App() {
       </View>
 
       <StatusBar style="auto" />
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 });
 

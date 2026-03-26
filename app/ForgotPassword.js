@@ -4,32 +4,34 @@ import {
     ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { AUTH_URL } from '../Constants';
+import { useTranslation } from 'react-i18next';
+import { AUTH_URL, BASE_URL } from '../Constants';
 
 const ForgotPassword = ({ onBack }) => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleReset = async () => {
-        if (!email) { setError('Please enter your email'); return; }
+        if (!email) { setError(t('errors.enterEmail')); return; }
         setError('');
         setLoading(true);
         try {
-            const response = await fetch(`${AUTH_URL}/forgot-password`, {
+            const response = await fetch(`${BASE_URL}/auth/forgot-password/send-new`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email }),
             });
             const data = await response.json();
-            if (!response.ok) { 
-                setError(data.message || 'Failed to send reset email'); 
-                return; 
+            if (!response.ok) {
+                setError(data.message || t('errors.failedToSendReset'));
+                return;
             }
             setSuccess(true);
         } catch (e) {
-            setError('Network error: could not reach the server');
+            setError(t('errors.networkError'));
         } finally {
             setLoading(false);
         }
@@ -43,14 +45,13 @@ const ForgotPassword = ({ onBack }) => {
                         <View style={[styles.logoCircle, { backgroundColor: '#27ae60' }]}>
                             <MaterialIcons name="mark-email-read" size={32} color="#fff" />
                         </View>
-                        <Text style={styles.appName}>Check your email</Text>
+                        <Text style={styles.appName}>{t('auth.checkEmail')}</Text>
                         <Text style={[styles.subtitle, { marginTop: 12, textAlign: 'center', lineHeight: 20 }]}>
-                            If an account with that email exists, we've sent a password reset link to{' '}
-                            <Text style={{ fontWeight: '700', color: '#333' }}>{email}</Text>.
+                            {t('auth.resetLinkSent', { email })}
                         </Text>
                     </View>
                     <TouchableOpacity style={styles.registerButton} onPress={onBack}>
-                        <Text style={styles.registerButtonText}>Back to Login</Text>
+                        <Text style={styles.registerButtonText}>{t('auth.backToLogin')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -68,9 +69,9 @@ const ForgotPassword = ({ onBack }) => {
                     <View style={styles.logoCircle}>
                         <MaterialIcons name="lock-reset" size={32} color="#fff" />
                     </View>
-                    <Text style={styles.appName}>Reset Password</Text>
+                    <Text style={styles.appName}>{t('auth.resetPassword')}</Text>
                     <Text style={[styles.subtitle, { textAlign: 'center', marginTop: 8 }]}>
-                        Enter your email address and we'll send you a link to reset your password.
+                        {t('auth.resetPasswordDescription')}
                     </Text>
                 </View>
 
@@ -79,7 +80,7 @@ const ForgotPassword = ({ onBack }) => {
                         <MaterialIcons name="email" size={18} color="#999" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Email address"
+                            placeholder={t('auth.emailAddress')}
                             placeholderTextColor="#aaa"
                             onChangeText={setEmail}
                             value={email}
@@ -102,7 +103,7 @@ const ForgotPassword = ({ onBack }) => {
                     >
                         {loading
                             ? <ActivityIndicator color="#fff" size="small" />
-                            : <Text style={styles.registerButtonText}>Send Reset Link</Text>
+                            : <Text style={styles.registerButtonText}>{t('auth.sendResetLink')}</Text>
                         }
                     </TouchableOpacity>
                 </View>
@@ -110,7 +111,7 @@ const ForgotPassword = ({ onBack }) => {
                 {onBack && (
                     <TouchableOpacity style={styles.backButton} onPress={onBack}>
                         <MaterialIcons name="arrow-back" size={16} color="#888" />
-                        <Text style={styles.backText}>Back to Login</Text>
+                        <Text style={styles.backText}>{t('auth.backToLogin')}</Text>
                     </TouchableOpacity>
                 )}
 
