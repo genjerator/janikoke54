@@ -23,6 +23,15 @@
         "buildType": "apk"
       },
       "channel": "production"
+    },
+    "production_playstore": {
+      "env": {
+        "SENTRY_AUTH_TOKEN": "@sentry_auth_token"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "channel": "production"
     }
   }
 }
