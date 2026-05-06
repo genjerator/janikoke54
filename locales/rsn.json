@@ -41,7 +41,9 @@
     "failedToSendReset": "Нєудатне посиланеє емаила за ресетованє",
     "couldNotLoadChallenges": "Нє удало ше учитац виволаня",
     "failedToLoadScores": "Нєудатне приказованє лїстини посцигнуцох",
-    "profileUpdateFailed": "Нєудатне обновйованє профилу"
+    "profileUpdateFailed": "Нєудатне обновйованє профилу",
+    "couldNotLoadPrizes": "Нє удало ше учитац награди",
+    "couldNotLoadMyPrizes": "Нє удало ше учитац твойо награди"
   },
   "challenges": {
     "title": "Виволаня",
@@ -61,7 +63,8 @@
     "noCollections": "Ище нєт колекциї. Почнї виглєдовац!",
     "congratulations": "Винчуєм!",
     "collectedPoint": "Достал(а) ши бод.",
-    "close": "Блїзко"
+    "close": "Блїзко",
+    "spent": "потрошене"
   },
   "map": {
     "closestArea": "Найблїзше подруче:"
@@ -79,6 +82,33 @@
     "success": "Успих",
     "profileUpdated": "Профил успишно обновени",
     "user": "Хаснователь(ка)"
+  },
+  "prizes": {
+    "title": "Награди",
+    "noPrizes": "Нєт доступних наградох.",
+    "available": "{{count}} доступне",
+    "yourScore": "Твойо боди: {{score}} pts",
+    "redeem": "Пребери",
+    "redeemTitle": "Пребери награду",
+    "redeemConfirm": "Пребери \"{{name}}\" за {{cost}} pts?",
+    "redeemSuccess": "Награда преберена!",
+    "redeemCode": "Твой код за пребованє: {{code}}",
+    "redeemFailed": "Пребованє нєуспишне",
+    "needMore": "Потребни ище {{count}} pts",
+    "cancel": "Одволай",
+    "ok": "Добре"
+  },
+  "myPrizes": {
+    "title": "Мойо награди",
+    "noRedemptions": "Ище нє пребрал(а) ши жадну награду.",
+    "code": "Код:",
+    "pts": "pts",
+    "amount": "×{{count}}",
+    "status": {
+      "approved": "Потвердзене",
+      "completed": "Законченє",
+      "cancelled": "Одволане"
+    }
   },
   "languages": {
     "en": "Анґлийски",

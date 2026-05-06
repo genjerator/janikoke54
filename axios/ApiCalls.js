@@ -40,6 +40,36 @@ export const postInsidePolygon = async (payload,user) => {
     }
 };
 
+export const fetchPrizes = async (user) => {
+    const url = API_URL + '/prizes/1';
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                'Authorization': `Bearer ${user ? user.token : ''}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error, 'Error:' + url);
+        Sentry.captureException(new Error('fetchPrizes', error, url));
+    }
+};
+
+export const fetchTotalScore = async (user) => {
+    const url = API_URL + '/scores/1/total';
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                'Authorization': `Bearer ${user ? user.token : ''}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error, 'Error:' + url);
+        Sentry.captureException(new Error('fetchTotalScore', error, url));
+    }
+};
+
 export const fetchResults = async (user) => {
 
     const url = API_URL + '/round/1/result';

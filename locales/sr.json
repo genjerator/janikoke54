@@ -41,7 +41,9 @@
     "failedToSendReset": "Slanje imejla za resetovanje nije uspelo",
     "couldNotLoadChallenges": "Nije moguće učitati izazove",
     "failedToLoadScores": "Nije moguće učitati rezultate",
-    "profileUpdateFailed": "Ažuriranje profila nije uspelo"
+    "profileUpdateFailed": "Ažuriranje profila nije uspelo",
+    "couldNotLoadPrizes": "Nije moguće učitati nagrade",
+    "couldNotLoadMyPrizes": "Nije moguće učitati vaše nagrade"
   },
   "challenges": {
     "title": "Izazovi",
@@ -61,7 +63,8 @@
     "noCollections": "Još nema kolekcija. Počnite istraživanje!",
     "congratulations": "Čestitamo!",
     "collectedPoint": "Osvojili ste poen.",
-    "close": "Zatvori"
+    "close": "Zatvori",
+    "spent": "potrošeno"
   },
   "map": {
     "closestArea": "Najbliža oblast:"
@@ -79,6 +82,33 @@
     "success": "Uspeh",
     "profileUpdated": "Profil je uspešno ažuriran",
     "user": "Korisnik"
+  },
+  "prizes": {
+    "title": "Nagrade",
+    "noPrizes": "Nema dostupnih nagrada.",
+    "available": "{{count}} dostupno",
+    "yourScore": "Vaš rezultat: {{score}} poena",
+    "redeem": "Preuzmi",
+    "redeemTitle": "Preuzmi nagradu",
+    "redeemConfirm": "Preuzmi \"{{name}}\" za {{cost}} poena?",
+    "redeemSuccess": "Nagrada preuzeta!",
+    "redeemCode": "Vaš kod za preuzimanje: {{code}}",
+    "redeemFailed": "Preuzimanje nije uspelo",
+    "needMore": "Treba još {{count}} poena",
+    "cancel": "Otkaži",
+    "ok": "U redu"
+  },
+  "myPrizes": {
+    "title": "Moje nagrade",
+    "noRedemptions": "Još niste preuzeli nijednu nagradu.",
+    "code": "Kod:",
+    "pts": "poena",
+    "amount": "×{{count}}",
+    "status": {
+      "approved": "Odobreno",
+      "completed": "Završeno",
+      "cancelled": "Otkazano"
+    }
   },
   "languages": {
     "en": "Engleski",

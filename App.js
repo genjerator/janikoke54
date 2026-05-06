@@ -13,6 +13,8 @@ import ChallengesScreen from './screens/ChallengesScreen';
 import TopScoreScreen from './screens/TopScoreScreen';
 import MapScreen from './screens/MapScreen';
 import ProfileEditScreen from './screens/ProfileEditScreen';
+import PrizesScreen from './screens/PrizesScreen';
+import MyPrizesScreen from './screens/MyPrizesScreen';
 import * as Sentry from '@sentry/react-native';
 
 Sentry.init({
@@ -108,6 +110,8 @@ export default Sentry.wrap(function App() {
     if (currentScreen === 'challenges') return <ChallengesScreen user={loggedUser} onOpenMap={setActiveChallenge} />;
     if (currentScreen === 'topscore') return <TopScoreScreen user={loggedUser} onBack={() => setCurrentScreen('challenges')} />;
     if (currentScreen === 'profile') return <ProfileEditScreen user={loggedUser} onBack={() => setCurrentScreen('challenges')} />;
+    if (currentScreen === 'prizes') return <PrizesScreen user={loggedUser} />;
+    if (currentScreen === 'myprizes') return <MyPrizesScreen user={loggedUser} />;
     return (
       <View style={styles.home}>
         <Text style={styles.welcome}>{loggedUser ? t('app.welcomeUser', { name: loggedUser.name || loggedUser.email }) : t('app.welcome')}!</Text>
@@ -182,6 +186,28 @@ export default Sentry.wrap(function App() {
           >
             <Text style={[styles.menuText, currentScreen === 'topscore' && styles.menuTextActive]}>
               ⭐ {t('score.title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.menuItem, currentScreen === 'prizes' && styles.menuItemActive]}
+            onPress={() => {
+              setCurrentScreen('prizes');
+              setActiveChallenge(null);
+            }}
+          >
+            <Text style={[styles.menuText, currentScreen === 'prizes' && styles.menuTextActive]}>
+              🎁 {t('prizes.title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.menuItem, currentScreen === 'myprizes' && styles.menuItemActive]}
+            onPress={() => {
+              setCurrentScreen('myprizes');
+              setActiveChallenge(null);
+            }}
+          >
+            <Text style={[styles.menuText, currentScreen === 'myprizes' && styles.menuTextActive]}>
+              🏅 {t('myPrizes.title')}
             </Text>
           </TouchableOpacity>
         </View>

@@ -41,7 +41,9 @@
     "failedToSendReset": "Failed to send reset email",
     "couldNotLoadChallenges": "Could not load challenges",
     "failedToLoadScores": "Failed to load scores",
-    "profileUpdateFailed": "Profile update failed"
+    "profileUpdateFailed": "Profile update failed",
+    "couldNotLoadPrizes": "Could not load prizes",
+    "couldNotLoadMyPrizes": "Could not load your redeemed prizes"
   },
   "challenges": {
     "title": "Challenges",
@@ -61,7 +63,8 @@
     "noCollections": "No collections yet. Start exploring!",
     "congratulations": "Congratulations!",
     "collectedPoint": "You have collected a point.",
-    "close": "Close"
+    "close": "Close",
+    "spent": "spent"
   },
   "map": {
     "closestArea": "Closest Area:"
@@ -79,6 +82,33 @@
     "success": "Success",
     "profileUpdated": "Profile updated successfully",
     "user": "User"
+  },
+  "prizes": {
+    "title": "Prizes",
+    "noPrizes": "No prizes available.",
+    "available": "{{count}} available",
+    "yourScore": "Your score: {{score}} pts",
+    "redeem": "Redeem",
+    "redeemTitle": "Redeem Prize",
+    "redeemConfirm": "Redeem \"{{name}}\" for {{cost}} pts?",
+    "redeemSuccess": "Prize Redeemed!",
+    "redeemCode": "Your redemption code: {{code}}",
+    "redeemFailed": "Redemption Failed",
+    "needMore": "Need {{count}} more pts",
+    "cancel": "Cancel",
+    "ok": "OK"
+  },
+  "myPrizes": {
+    "title": "My Prizes",
+    "noRedemptions": "You haven't redeemed any prizes yet.",
+    "code": "Code:",
+    "pts": "pts",
+    "amount": "×{{count}}",
+    "status": {
+      "approved": "Approved",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
   },
   "languages": {
     "en": "English",

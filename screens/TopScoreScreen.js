@@ -48,7 +48,9 @@ const TopScoreScreen = ({ user, onBack }) => {
                                 data: []
                             };
                         }
-                        groups[cid].totalPoints += (item.points || 0);
+                        if (item.status !== 0) {
+                            groups[cid].totalPoints += (item.points || 0);
+                        }
                         groups[cid].data.push(item);
                     });
 
@@ -107,17 +109,25 @@ const TopScoreScreen = ({ user, onBack }) => {
 
                         {isExpanded && (
                             <View style={styles.detailsContainer}>
-                                {item.data.map((col, idx) => (
-                                    <View key={col.cidaid || idx} style={styles.detailRow}>
+                                {item.data.map((col, idx) => {
+                                    const spent = col.status === 0;
+                                    return (
+                                    <View key={col.cidaid || idx} style={[styles.detailRow, spent && styles.detailRowSpent]}>
                                         <View style={styles.detailInfo}>
-                                            <Text style={styles.areaName}>{col.area_name}</Text>
-                                            <Text style={styles.dateText}>
+                                            <Text style={[styles.areaName, spent && styles.textSpent]}>{col.area_name}</Text>
+                                            <Text style={[styles.dateText, spent && styles.textSpent]}>
                                                 {new Date(col.created_at_unix * 1000).toLocaleDateString()}
                                             </Text>
                                         </View>
-                                        <Text style={styles.detailPoints}>{t('score.plusPoints', { points: col.points })}</Text>
+                                        <View style={styles.pointsCol}>
+                                            <Text style={[styles.detailPoints, spent && styles.detailPointsSpent]}>
+                                                {t('score.plusPoints', { points: col.points })}
+                                            </Text>
+                                            {spent && <Text style={styles.spentLabel}>{t('score.spent')}</Text>}
+                                        </View>
                                     </View>
-                                ))}
+                                    );
+                                })}
                             </View>
                         )}
                     </View>
@@ -194,6 +204,11 @@ const styles = StyleSheet.create({
     areaName: { fontSize: 15, fontWeight: '600', color: '#444' },
     dateText: { fontSize: 12, color: '#999', marginTop: 2 },
     detailPoints: { fontSize: 14, fontWeight: 'bold', color: '#2ecc71' },
+    detailPointsSpent: { color: '#e74c3c', textDecorationLine: 'line-through' },
+    pointsCol: { alignItems: 'flex-end' },
+    spentLabel: { fontSize: 10, color: '#e74c3c', fontWeight: '600', marginTop: 2 },
+    detailRowSpent: { backgroundColor: '#fff5f5' },
+    textSpent: { color: '#e74c3c', opacity: 0.7 },
     error: { color: 'red', textAlign: 'center', marginTop: 40 },
     empty: { textAlign: 'center', color: '#999', marginTop: 40 },
 });

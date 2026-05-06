@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     View, Text, TextInput, StyleSheet, Image,
-    ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert
+    ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -108,7 +108,6 @@ const ProfileEditScreen = ({ user, onBack }) => {
                 console.error('Failed to update user session:', e);
             }
 
-            Alert.alert(t('profile.success'), t('profile.profileUpdated'));
             if (onBack) onBack();
 
         } catch (e) {

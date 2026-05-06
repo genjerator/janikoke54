@@ -102,3 +102,5 @@ Whether visits are counted per round/challenge or globally
 Whether to consolidate Auth + Area logic in one Go service or separate services
 
 Want me to finalize any of the open decisions before you start building?
+
+version in android/app/build.gradle:97.  

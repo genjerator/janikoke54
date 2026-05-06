@@ -22,7 +22,8 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true
     },
     "production_playstore": {
       "env": {
@@ -31,7 +32,8 @@
       "android": {
         "buildType": "app-bundle"
       },
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true
     }
   }
 }
