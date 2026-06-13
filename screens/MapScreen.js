@@ -8,14 +8,14 @@ import { postInsidePolygon, fetchChallengesData } from '../axios/ApiCalls';
 import * as Sentry from '@sentry/react-native';
 
 
-// Custom marker that gently pulses — used for completed (red) areas.
-const PulsingMarker = ({ coordinate, title }) => {
+// Current-location marker — a bigger blue pin that gently pulses.
+const UserMarker = ({ coordinate, title }) => {
     const scale = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
         const loop = Animated.loop(
             Animated.sequence([
-                Animated.timing(scale, { toValue: 1.25, duration: 800, useNativeDriver: false }),
+                Animated.timing(scale, { toValue: 1.12, duration: 800, useNativeDriver: false }),
                 Animated.timing(scale, { toValue: 1, duration: 800, useNativeDriver: false }),
             ])
         );
@@ -24,10 +24,10 @@ const PulsingMarker = ({ coordinate, title }) => {
     }, []);
 
     return (
-        <Marker coordinate={coordinate} title={title} anchor={{ x: 0.5, y: 1 }}>
-            <Animated.View style={[styles.pinWrap, { transform: [{ scale }] }]}>
-                <View style={styles.pin}>
-                    <View style={styles.pinCore} />
+        <Marker coordinate={coordinate} anchor={{ x: 0.5, y: 1 }} zIndex={999} title={title}>
+            <Animated.View style={[styles.userPinWrap, { transform: [{ scale }] }]}>
+                <View style={styles.userPin}>
+                    <View style={styles.userPinCore} />
                 </View>
             </Animated.View>
         </Marker>
@@ -307,8 +307,8 @@ const MapScreen = ({ challenge, user, onBack }) => {
                 style={styles.map}
                 initialRegion={mapRegion}
                 onMapReady={() => setMapReady(true)}
-                showsUserLocation={locationPermission}
-                showsMyLocationButton={locationPermission}
+                showsUserLocation={false}
+                showsMyLocationButton={false}
                 onRegionChange={handleMapMove}
                 onRegionChangeComplete={handleMapMoveComplete}
             >
@@ -324,21 +324,25 @@ const MapScreen = ({ challenge, user, onBack }) => {
                                 strokeWidth={2}
                             />
                             {center && (
-                                isCompleted ? (
-                                    <PulsingMarker coordinate={center} title={area.name} />
-                                ) : (
-                                    <Marker coordinate={center} title={area.name} anchor={{ x: 0.5, y: 1 }}>
-                                        <View style={styles.pinSmallWrap}>
-                                            <View style={styles.pinSmall}>
-                                                <View style={styles.pinSmallCore} />
-                                            </View>
+                                <Marker coordinate={center} title={area.name} anchor={{ x: 0.5, y: 1 }}>
+                                    <View style={styles.pinSmallWrap}>
+                                        <View style={[styles.pinSmall, { backgroundColor: isCompleted ? '#F44336' : '#4CAF50' }]}>
+                                            <View style={styles.pinSmallCore} />
                                         </View>
-                                    </Marker>
-                                )
+                                    </View>
+                                </Marker>
                             )}
                         </React.Fragment>
                     );
                 })}
+
+                {/* Current location — bigger, solid blue pin (slightly pulsing) */}
+                {userLocation && (
+                    <UserMarker
+                        coordinate={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
+                        title={t('map.you')}
+                    />
+                )}
             </MapView>
 
             {/* Closest Area Info Pill */}
@@ -423,45 +427,50 @@ const styles = StyleSheet.create({
         backgroundColor: '#4CAF50',
         marginRight: 8,
     },
-    pinWrap: {
+    userPinWrap: {
+        width: 38,
+        height: 48,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
+    userPin: {
+        width: 32,
+        height: 32,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        borderBottomRightRadius: 16,
+        borderBottomLeftRadius: 2,
+        backgroundColor: '#1976D2',
+        borderWidth: 3,
+        borderColor: '#fff',
+        transform: [{ rotate: '-45deg' }],
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
+    },
+    userPinCore: {
+        width: 11,
+        height: 11,
+        borderRadius: 5.5,
+        backgroundColor: '#fff',
+    },
+    pinSmallWrap: {
         width: 28,
         height: 36,
         alignItems: 'center',
         justifyContent: 'flex-start',
     },
-    pin: {
-        width: 24,
-        height: 24,
+    pinSmall: {
+        width: 22,
+        height: 22,
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
         borderBottomRightRadius: 12,
         borderBottomLeftRadius: 2,
-        backgroundColor: '#F44336',
-        borderWidth: 2,
-        borderColor: '#fff',
-        transform: [{ rotate: '-45deg' }],
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    pinCore: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#fff',
-    },
-    pinSmallWrap: {
-        width: 18,
-        height: 24,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-    },
-    pinSmall: {
-        width: 15,
-        height: 15,
-        borderTopLeftRadius: 8,
-        borderTopRightRadius: 8,
-        borderBottomRightRadius: 8,
-        borderBottomLeftRadius: 1,
         backgroundColor: '#4CAF50',
         borderWidth: 2,
         borderColor: '#fff',
@@ -470,9 +479,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     pinSmallCore: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
+        width: 6,
+        height: 6,
+        borderRadius: 3,
         backgroundColor: '#fff',
     },
     trackingText: {
