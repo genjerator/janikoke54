@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity, Platform, Modal, Pressable, Animated } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,21 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
+const Pulse = ({ children, style }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 1.18, duration: 700, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+  return <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>;
+};
+
 export default Sentry.wrap(function App() {
   const { t, i18n } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
@@ -44,6 +59,8 @@ export default Sentry.wrap(function App() {
   const [loggedUser, setLoggedUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('home');
   const [activeChallenge, setActiveChallenge] = useState(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
 
   // Load user session on startup
   useEffect(() => {
@@ -137,6 +154,18 @@ export default Sentry.wrap(function App() {
     );
   };
 
+  const navItems = [
+    { key: 'challenges', icon: '🏆', label: t('challenges.title') },
+    { key: 'topscore', icon: '⭐', label: t('score.title') },
+    { key: 'prizes', icon: '🎁', label: t('prizes.title') },
+    { key: 'myprizes', icon: '🏅', label: t('myPrizes.title') },
+  ];
+
+  const goTo = (key) => {
+    setCurrentScreen(key);
+    setActiveChallenge(null);
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
@@ -145,15 +174,26 @@ export default Sentry.wrap(function App() {
         <Text style={styles.topBarTitle}>{t('app.title')}</Text>
         {loggedUser ? (
           <View style={styles.topBarRight}>
-            <TouchableOpacity onPress={() => {
-              setCurrentScreen('profile');
-              setActiveChallenge(null);
-            }}>
-              <Text style={[styles.userText, currentScreen === 'profile' && { textDecorationLine: 'underline' }]}>
+            <TouchableOpacity
+              style={styles.userButton}
+              onPress={() => setUserMenuOpen(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.userText} numberOfLines={1}>
                 👤 {loggedUser.name || loggedUser.email || t('profile.user')}
               </Text>
+              <Text style={styles.userChevron}>▾</Text>
             </TouchableOpacity>
-            <Button title={t('auth.logout')} onPress={handleLogout} />
+            <Pulse>
+              <TouchableOpacity
+                style={styles.hamburger}
+                onPress={() => setNavMenuOpen(true)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.hamburgerIcon}>☰</Text>
+              </TouchableOpacity>
+            </Pulse>
           </View>
         ) : (
           <View style={styles.topBarRight}>
@@ -163,55 +203,65 @@ export default Sentry.wrap(function App() {
         )}
       </View>
 
-      {/* Menu — only when logged in */}
-      {loggedUser && (
-        <View style={styles.menu}>
-          <TouchableOpacity
-            style={[styles.menuItem, currentScreen === 'challenges' && styles.menuItemActive]}
-            onPress={() => {
-              setCurrentScreen('challenges');
-              setActiveChallenge(null);
-            }}
-          >
-            <Text style={[styles.menuText, currentScreen === 'challenges' && styles.menuTextActive]}>
-              🏆 {t('challenges.title')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.menuItem, currentScreen === 'topscore' && styles.menuItemActive]}
-            onPress={() => {
-              setCurrentScreen('topscore');
-              setActiveChallenge(null);
-            }}
-          >
-            <Text style={[styles.menuText, currentScreen === 'topscore' && styles.menuTextActive]}>
-              ⭐ {t('score.title')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.menuItem, currentScreen === 'prizes' && styles.menuItemActive]}
-            onPress={() => {
-              setCurrentScreen('prizes');
-              setActiveChallenge(null);
-            }}
-          >
-            <Text style={[styles.menuText, currentScreen === 'prizes' && styles.menuTextActive]}>
-              🎁 {t('prizes.title')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.menuItem, currentScreen === 'myprizes' && styles.menuItemActive]}
-            onPress={() => {
-              setCurrentScreen('myprizes');
-              setActiveChallenge(null);
-            }}
-          >
-            <Text style={[styles.menuText, currentScreen === 'myprizes' && styles.menuTextActive]}>
-              🏅 {t('myPrizes.title')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* User dropdown menu */}
+      <Modal
+        visible={userMenuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setUserMenuOpen(false)}
+      >
+        <Pressable style={styles.menuOverlay} onPress={() => setUserMenuOpen(false)}>
+          <View style={[styles.dropdown, { top: Platform.OS === 'android' ? 72 : 52 }]}>
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => {
+                setUserMenuOpen(false);
+                setCurrentScreen('profile');
+                setActiveChallenge(null);
+              }}
+            >
+              <Text style={styles.dropdownItemText}>✏️  {t('profile.title')}</Text>
+            </TouchableOpacity>
+            <View style={styles.dropdownDivider} />
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => {
+                setUserMenuOpen(false);
+                handleLogout();
+              }}
+            >
+              <Text style={[styles.dropdownItemText, styles.dropdownLogout]}>🚪  {t('auth.logout')}</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Hamburger nav dropdown — available on every screen */}
+      <Modal
+        visible={navMenuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNavMenuOpen(false)}
+      >
+        <Pressable style={styles.menuOverlay} onPress={() => setNavMenuOpen(false)}>
+          <View style={[styles.navDropdown, { top: Platform.OS === 'android' ? 72 : 52 }]}>
+            {navItems.map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setNavMenuOpen(false);
+                  goTo(item.key);
+                }}
+              >
+                <Text style={[styles.dropdownItemText, currentScreen === item.key && styles.dropdownItemActive]}>
+                  {item.icon}  {item.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Content */}
       <View style={styles.content}>
@@ -232,15 +282,29 @@ const styles = StyleSheet.create({
   topBar: {
     marginTop: Platform.OS === 'android' ? 24 : 0, // Roughly standard height for Android status bar if StatusBar.currentHeight isn't firing
     backgroundColor: '#fff',
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    color: '#000',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 1,
+  },
+  hamburger: {
+    paddingHorizontal: 2,
+  },
+  hamburgerIcon: {
+    fontSize: 24,
+    color: '#333',
+    fontWeight: '700',
   },
   topBarTitle: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
@@ -252,12 +316,77 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 
+  userButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f4ff',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    maxWidth: 200,
+  },
   userText: {
-    color: '#fff',
+    color: '#333',
     fontSize: 14,
     fontWeight: '600',
-    marginRight: 8,
-    color: '#000',
+    flexShrink: 1,
+  },
+  userChevron: {
+    color: '#4A90E2',
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 6,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  dropdown: {
+    position: 'absolute',
+    right: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 4,
+    minWidth: 190,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  dropdownItem: {
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '600',
+  },
+  dropdownLogout: {
+    color: '#e53935',
+  },
+  dropdownItemActive: {
+    color: '#4A90E2',
+    fontWeight: '700',
+  },
+  navDropdown: {
+    position: 'absolute',
+    right: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 4,
+    minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  dropdownDivider: {
+    height: 1,
+    backgroundColor: '#eee',
+    marginHorizontal: 8,
   },
   menu: {
     flexDirection: 'row',

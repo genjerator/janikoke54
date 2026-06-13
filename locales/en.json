@@ -51,7 +51,8 @@
     "noChallenges": "No challenges found.",
     "map": "Map",
     "areas": "Areas",
-    "areasCount": "Areas ({{count}})"
+    "areasCount": "Areas ({{count}})",
+    "calculatingDistances": "Calculating distances…"
   },
   "score": {
     "title": "Score",
@@ -64,10 +65,15 @@
     "congratulations": "Congratulations!",
     "collectedPoint": "You have collected a point.",
     "close": "Close",
-    "spent": "spent"
+    "spent": "spent",
+    "earned": "Earned",
+    "redeemed": "Redeemed",
+    "available": "Available"
   },
   "map": {
-    "closestArea": "Closest Area:"
+    "closestArea": "Closest Area:",
+    "locationTracking": "Location tracking is on",
+    "you": "You"
   },
   "profile": {
     "title": "Edit Profile",

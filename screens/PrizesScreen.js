@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, Im
 import { useTranslation } from 'react-i18next';
 import * as Sentry from '@sentry/react-native';
 import { API_URL } from '../Constants';
+import RenderHtml from '../utils/html';
 
 const PrizesScreen = ({ user }) => {
     const { t } = useTranslation();
@@ -150,10 +151,10 @@ const PrizesScreen = ({ user }) => {
                                 </View>
                             </View>
                             {item.description ? (
-                                <Text style={styles.description}>{item.description}</Text>
+                                <RenderHtml html={item.description} style={styles.description} />
                             ) : null}
                             {item.content ? (
-                                <Text style={styles.content}>{item.content}</Text>
+                                <RenderHtml html={item.content} style={styles.content} />
                             ) : null}
                             <View style={styles.footer}>
                                 <Text style={styles.amount}>

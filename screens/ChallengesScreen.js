@@ -40,10 +40,12 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
     const [userLocation, setUserLocation] = useState(null);
+    const [locating, setLocating] = useState(true);
 
     // Get current location when the screen loads
     useEffect(() => {
         (async () => {
+            setLocating(true);
             try {
                 const { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') {
@@ -64,6 +66,8 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
             } catch (e) {
                 console.error('Error getting location:', e);
                 Sentry.logger.error('Error getting location', e);
+            } finally {
+                setLocating(false);
             }
         })();
     }, []);
@@ -118,10 +122,6 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
         return `${(dist / 1000).toFixed(1)} km`;
     };
 
-    const [expandedIds, setExpandedIds] = useState({});
-    const toggleExpand = (id) =>
-        setExpandedIds(prev => ({ ...prev, [id]: !prev[id] }));
-
     if (loading) return <ActivityIndicator style={styles.center} size="large" color="#4A90E2" />;
     if (error) return <Text style={styles.error}>{error}</Text>;
 
@@ -138,12 +138,20 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                     tintColor="#4A90E2"
                 />
             }
+            ListHeaderComponent={
+                locating ? (
+                    <View style={styles.locatingBanner}>
+                        <ActivityIndicator size="small" color="#4A90E2" />
+                        <Text style={styles.locatingText}>{t('challenges.calculatingDistances')}</Text>
+                    </View>
+                ) : null
+            }
             renderItem={({ item }) => (
                 <View style={styles.challengeCard}>
-                    {/* Tappable header */}
+                    {/* Tapping the card goes straight to the map */}
                     <TouchableOpacity
                         style={styles.challengeHeader}
-                        onPress={() => toggleExpand(item.id)}
+                        onPress={() => onOpenMap && onOpenMap(item)}
                         activeOpacity={0.8}
                     >
                         <View style={styles.challengeHeaderRow}>
@@ -152,54 +160,16 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
                             )}</Text>
                             <View style={styles.headerActions}>
                                 <PulsingIcon>
-                                    <TouchableOpacity
-                                        style={styles.mapButton}
-                                        onPress={(e) => {
-                                            e.stopPropagation();
-                                            onOpenMap && onOpenMap(item);
-                                        }}
-                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                    >
+                                    <View style={styles.mapButton}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                             <Text style={styles.mapIconEmoji}>📍</Text>
                                             <Text style={styles.mapIconText}> {t('challenges.map')}</Text>
                                         </View>
-                                    </TouchableOpacity>
+                                    </View>
                                 </PulsingIcon>
-                                <Text style={styles.chevron}>
-                                    {expandedIds[item.id] ? '▲' : '▼'}
-                                </Text>
                             </View>
                         </View>
                     </TouchableOpacity>
-
-                    {/* Areas — only shown when expanded */}
-                    {expandedIds[item.id] && item.areas && item.areas.length > 0 && (
-                        <View style={styles.areasContainer}>
-                            <Text style={styles.areasLabel}>{t('challenges.areasCount', { count: item.areas.length })}</Text>
-                            {item.areas.map((area) => (
-                                <View key={area.id} style={styles.areaRow}>
-                                    <View style={styles.statusDotContainer}>
-                                        {area.status === 0 && (
-                                            <PulsingIcon>
-                                                <View style={[styles.statusDot, { backgroundColor: '#bbb', position: 'absolute' }]} />
-                                            </PulsingIcon>
-                                        )}
-                                        <View style={[
-                                            styles.statusDot,
-                                            { backgroundColor: area.status === 1 ? '#4CAF50' : '#bbb' }
-                                        ]} />
-                                    </View>
-                                    <View style={styles.areaInfo}>
-                                        <Text style={styles.areaName}>{area.name}</Text>
-                                        {area.description ? (
-                                            <Text style={styles.areaDesc}>{area.description}</Text>
-                                        ) : null}
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
-                    )}
                 </View>
             )}
             ListEmptyComponent={<Text style={styles.empty}>{t('challenges.noChallenges')}</Text>}
@@ -210,6 +180,19 @@ const ChallengesScreen = ({ user, onOpenMap }) => {
 const styles = StyleSheet.create({
     center: { flex: 1, marginTop: 40 },
     list: { padding: 16 },
+    locatingBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        marginBottom: 8,
+    },
+    locatingText: {
+        color: '#4A90E2',
+        fontSize: 13,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
     challengeCard: {
         backgroundColor: '#fff',
         borderRadius: 12,

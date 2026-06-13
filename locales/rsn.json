@@ -51,7 +51,8 @@
     "noChallenges": "Виволаня на найдзени.",
     "map": "Мапа",
     "areas": "Подруча",
-    "areasCount": " Подруча ({{count}})"
+    "areasCount": " Подруча ({{count}})",
+    "calculatingDistances": "Рахованє оддалєносци…"
   },
   "score": {
     "title": "Резултат",
@@ -64,10 +65,15 @@
     "congratulations": "Винчуєм!",
     "collectedPoint": "Достал(а) ши бод.",
     "close": "Блїзко",
-    "spent": "потрошене"
+    "spent": "потрошене",
+    "earned": "Освоєне",
+    "redeemed": "Потрошене",
+    "available": "Доступне"
   },
   "map": {
-    "closestArea": "Найблїзше подруче:"
+    "closestArea": "Найблїзше подруче:",
+    "locationTracking": "Прослїдзованє локациї є вклацене",
+    "you": "Ти"
   },
   "profile": {
     "title": "Ушор профил",

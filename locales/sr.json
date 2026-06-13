@@ -51,7 +51,8 @@
     "noChallenges": "Nije pronađen nijedan izazov.",
     "map": "Mapa",
     "areas": "Oblasti",
-    "areasCount": "Oblasti ({{count}})"
+    "areasCount": "Oblasti ({{count}})",
+    "calculatingDistances": "Računanje udaljenosti…"
   },
   "score": {
     "title": "Rezultat",
@@ -64,10 +65,15 @@
     "congratulations": "Čestitamo!",
     "collectedPoint": "Osvojili ste poen.",
     "close": "Zatvori",
-    "spent": "potrošeno"
+    "spent": "potrošeno",
+    "earned": "Osvojeno",
+    "redeemed": "Iskorišćeno",
+    "available": "Dostupno"
   },
   "map": {
-    "closestArea": "Najbliža oblast:"
+    "closestArea": "Najbliža oblast:",
+    "locationTracking": "Praćenje lokacije je uključeno",
+    "you": "Vi"
   },
   "profile": {
     "title": "Uredi profil",

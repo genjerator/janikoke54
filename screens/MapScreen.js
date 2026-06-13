@@ -8,6 +8,32 @@ import { postInsidePolygon, fetchChallengesData } from '../axios/ApiCalls';
 import * as Sentry from '@sentry/react-native';
 
 
+// Custom marker that gently pulses — used for completed (red) areas.
+const PulsingMarker = ({ coordinate, title }) => {
+    const scale = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(scale, { toValue: 1.25, duration: 800, useNativeDriver: false }),
+                Animated.timing(scale, { toValue: 1, duration: 800, useNativeDriver: false }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, []);
+
+    return (
+        <Marker coordinate={coordinate} title={title} anchor={{ x: 0.5, y: 1 }}>
+            <Animated.View style={[styles.pinWrap, { transform: [{ scale }] }]}>
+                <View style={styles.pin}>
+                    <View style={styles.pinCore} />
+                </View>
+            </Animated.View>
+        </Marker>
+    );
+};
+
 const MapScreen = ({ challenge, user, onBack }) => {
     const { t } = useTranslation();
     const [locationPermission, setLocationPermission] = useState(null);
@@ -15,10 +41,17 @@ const MapScreen = ({ challenge, user, onBack }) => {
     const [closestArea, setClosestArea] = useState(null);
     const [collectedArea, setCollectedArea] = useState(null); // The area we just entered
     const [currentChallenge, setCurrentChallenge] = useState(challenge);
+    const [mapReady, setMapReady] = useState(false);
+
+    const mapRef = useRef(null);
+    const fittedWithUser = useRef(false);
 
     // Animation refs for the closest area pill
     const pillOpacity = useRef(new Animated.Value(0)).current;
     const fadeTimeout = useRef(null);
+
+    // Pulsing dot for the "location tracking is on" disclosure
+    const trackingDot = useRef(new Animated.Value(1)).current;
 
     const handleMapMove = () => {
         if (fadeTimeout.current) clearTimeout(fadeTimeout.current);
@@ -82,6 +115,19 @@ const MapScreen = ({ challenge, user, onBack }) => {
             }
         };
     }, []);
+
+    // Pulse the tracking dot while location tracking is active
+    useEffect(() => {
+        if (!locationPermission) return;
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(trackingDot, { toValue: 0.2, duration: 800, useNativeDriver: true }),
+                Animated.timing(trackingDot, { toValue: 1, duration: 800, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [locationPermission]);
 
     // Handle hardware back button
     useEffect(() => {
@@ -210,6 +256,28 @@ const MapScreen = ({ challenge, user, onBack }) => {
         setClosestArea(closest);
     }, [userLocation, allPolygons]);
 
+    // Fit the map so all areas AND the user's position are visible, zoomed in
+    // as close as possible. Fit once on load, then once more when the user's
+    // location first arrives — after that, stop so we don't fight panning/zoom.
+    useEffect(() => {
+        if (!mapReady || !mapRef.current || fittedWithUser.current) return;
+
+        const coords = [];
+        allPolygons.forEach(area => area.polyCoords.forEach(c => coords.push(c)));
+        if (userLocation) {
+            coords.push({ latitude: userLocation.latitude, longitude: userLocation.longitude });
+        }
+        if (coords.length === 0) return;
+
+        mapRef.current.fitToCoordinates(coords, {
+            edgePadding: { top: 90, right: 60, bottom: 120, left: 60 },
+            animated: true,
+        });
+
+        // Only lock once we've framed the user too; until then keep re-fitting.
+        if (userLocation) fittedWithUser.current = true;
+    }, [mapReady, allPolygons, userLocation]);
+
     // Format distance for display
     const formatDistance = (dist) => {
         if (dist === null || dist === undefined) return '';
@@ -225,10 +293,20 @@ const MapScreen = ({ challenge, user, onBack }) => {
                 <Text style={styles.title} numberOfLines={1}>{challenge?.name}</Text>
             </TouchableOpacity>
 
+            {/* Location tracking disclosure (Google Play requirement) */}
+            {locationPermission && (
+                <View style={styles.trackingBanner}>
+                    <Animated.View style={[styles.trackingDot, { opacity: trackingDot }]} />
+                    <Text style={styles.trackingText}>{t('map.locationTracking')}</Text>
+                </View>
+            )}
+
             {/* Google Map */}
             <MapView
+                ref={mapRef}
                 style={styles.map}
                 initialRegion={mapRegion}
+                onMapReady={() => setMapReady(true)}
                 showsUserLocation={locationPermission}
                 showsMyLocationButton={locationPermission}
                 onRegionChange={handleMapMove}
@@ -246,11 +324,17 @@ const MapScreen = ({ challenge, user, onBack }) => {
                                 strokeWidth={2}
                             />
                             {center && (
-                                <Marker
-                                    coordinate={center}
-                                    title={area.name}
-                                    pinColor={isCompleted ? '#F44336' : '#4CAF50'}
-                                />
+                                isCompleted ? (
+                                    <PulsingMarker coordinate={center} title={area.name} />
+                                ) : (
+                                    <Marker coordinate={center} title={area.name} anchor={{ x: 0.5, y: 1 }}>
+                                        <View style={styles.pinSmallWrap}>
+                                            <View style={styles.pinSmall}>
+                                                <View style={styles.pinSmallCore} />
+                                            </View>
+                                        </View>
+                                    </Marker>
+                                )
                             )}
                         </React.Fragment>
                     );
@@ -321,6 +405,80 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         height: '100%',
+    },
+    trackingBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(238, 244, 255, 0.55)',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(219, 230, 255, 0.5)',
+    },
+    trackingDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#4CAF50',
+        marginRight: 8,
+    },
+    pinWrap: {
+        width: 28,
+        height: 36,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
+    pin: {
+        width: 24,
+        height: 24,
+        borderTopLeftRadius: 12,
+        borderTopRightRadius: 12,
+        borderBottomRightRadius: 12,
+        borderBottomLeftRadius: 2,
+        backgroundColor: '#F44336',
+        borderWidth: 2,
+        borderColor: '#fff',
+        transform: [{ rotate: '-45deg' }],
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    pinCore: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#fff',
+    },
+    pinSmallWrap: {
+        width: 18,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
+    pinSmall: {
+        width: 15,
+        height: 15,
+        borderTopLeftRadius: 8,
+        borderTopRightRadius: 8,
+        borderBottomRightRadius: 8,
+        borderBottomLeftRadius: 1,
+        backgroundColor: '#4CAF50',
+        borderWidth: 2,
+        borderColor: '#fff',
+        transform: [{ rotate: '-45deg' }],
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    pinSmallCore: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#fff',
+    },
+    trackingText: {
+        color: '#3a5a8c',
+        fontSize: 12,
+        fontWeight: '600',
     },
     closestPill: {
         position: 'absolute',
