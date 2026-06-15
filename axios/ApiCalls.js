@@ -1,6 +1,7 @@
 import axios from "axios";
 import {API_URL} from "../Constants";
 import * as Sentry from '@sentry/react-native';
+import i18n from "../i18n";
 
 
 export const fetchChallengesData = async (user) => {
@@ -37,6 +38,27 @@ export const postInsidePolygon = async (payload,user) => {
     } catch (error) {
         console.log(error, "Error");
         Sentry.captureException(new Error('postInsidePolygon', error,url));
+    }
+};
+
+// Fetches all articles for the round in one call. Each article carries an
+// `area_id` so the client can group them per area. Returns the raw payload
+// (array, or `{ data: [...] }`); the caller normalizes it.
+export const fetchRoundArticles = async (user) => {
+    // Pass the active app language so the backend (SetLocale) returns the
+    // article title/excerpt/content translated for the current locale.
+    const url = API_URL + '/round/1/articles';
+    try {
+        const response = await axios.get(url, {
+            params: { lang: i18n.language },
+            headers: {
+                'Authorization': `Bearer ${user ? user.token : ''}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error, 'Error:' + url);
+        Sentry.captureException(new Error('fetchRoundArticles', error, url));
     }
 };
 

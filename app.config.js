@@ -1,10 +1,19 @@
 import "dotenv/config";
 
+const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
+if (!googleMapsApiKey) {
+  throw new Error(
+    "GOOGLE_MAPS_API_KEY is not set. Add it to your local .env for local builds, " +
+      "or as an EAS secret (`eas secret:create --name GOOGLE_MAPS_API_KEY`) for cloud builds. " +
+      "Without it the Android build crashes at runtime with a missing Maps API key.",
+  );
+}
+
 export default {
   expo: {
     name: "Janikoke",
     slug: "janikoke54",
-    version: "2.0.2",
+    version: "2.0.4",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -26,7 +35,7 @@ export default {
       },
       config: {
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_API_KEY,
+          apiKey: googleMapsApiKey,
         },
       },
       package: "com.anonymous.janikoke",
